@@ -83,7 +83,6 @@ Thumbs.db
 [Rr]eleases/
 x64/
 x86/
-build/
 bld/
 [Bb]in/
 [Oo]bj/
@@ -267,4 +266,24 @@ FakesAssemblies/
 *.plg
 
 # Visual Studio 6 workspace options file
-*.opt 
+*.opt
+
+# Windows thumbnail cache files
+Thumbs.db
+# Windows Installer files
+*.cab
+*.msi
+*.msm
+*.msp
+
+# JetBrains Rider
+*.sln.iml
+*.suo
+*.user
+.idea
+
+# My specific files
+To dostałem od twojego konkurenta w tworzeniu tego.md
+
+# Cursor-specific files
+.cursor/
