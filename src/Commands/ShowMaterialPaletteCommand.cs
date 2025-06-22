@@ -33,7 +33,7 @@ namespace RhinoCncSuite.Commands
             try
             {
                 // Check if the panel is already visible
-                var panelId = MaterialPalettePanel.PanelId;
+                var panelId = typeof(MaterialPalettePanelHost).GUID;
                 var isVisible = Panels.IsPanelVisible(panelId);
 
                 if (isVisible)

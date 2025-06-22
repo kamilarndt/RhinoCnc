@@ -12,15 +12,15 @@ namespace RhinoCncSuite
     /// </summary>
     public class RhinoCncPlugin : PlugIn
     {
-        private Task<MaterialCatalogService> _materialCatalogServiceTask;
-        private Task<ElementOutlinerService> _elementOutlinerServiceTask;
-        private readonly object _materialLock = new object();
-        private readonly object _elementLock = new object();
-
         /// <summary>
         /// Gets the singleton instance of the plugin
         /// </summary>
         public static RhinoCncPlugin Instance { get; private set; }
+
+        public MaterialCatalogService MaterialCatalog { get; private set; }
+        public ElementOutlinerService ElementOutliner { get; private set; }
+
+        private Task _initializationTask;
 
         /// <summary>
         /// Constructor
@@ -47,42 +47,6 @@ namespace RhinoCncSuite
             }
         }
 
-        public Task<MaterialCatalogService> GetMaterialCatalogAsync()
-        {
-            lock (_materialLock)
-            {
-                if (_materialCatalogServiceTask == null)
-                {
-                    var catalogFilePath = Path.Combine(GetDataDirectory(), "materials.json");
-                    _materialCatalogServiceTask = MaterialCatalogService.CreateAsync(catalogFilePath);
-                }
-            }
-            return _materialCatalogServiceTask;
-        }
-
-        public Task<ElementOutlinerService> GetElementOutlinerAsync()
-        {
-            lock (_elementLock)
-            {
-                if (_elementOutlinerServiceTask == null)
-                {
-                    // This creates a dependency: ElementOutliner needs the MaterialCatalog.
-                    // We chain the tasks to ensure correct initialization order.
-                    _elementOutlinerServiceTask = InitializeElementOutlinerService();
-                }
-            }
-            return _elementOutlinerServiceTask;
-        }
-
-        private async Task<ElementOutlinerService> InitializeElementOutlinerService()
-        {
-            var materialCatalog = await GetMaterialCatalogAsync();
-            var elementsFilePath = Path.Combine(GetDataDirectory(), "elements.json");
-            var elementOutlinerService = new ElementOutlinerService(elementsFilePath, materialCatalog);
-            await elementOutlinerService.InitializeAsync();
-            return elementOutlinerService;
-        }
-
         /// <summary>
         /// Called when the plugin is loaded
         /// </summary>
@@ -90,51 +54,53 @@ namespace RhinoCncSuite
         {
             try
             {
+                Instance = this;
                 RhinoApp.WriteLine("RhinoCNC Production Suite: Plugin loading...");
-                RhinoApp.WriteLine($"RhinoCNC: Plugin ID = {this.Id}");
-                
-                // Check if plugin ID is valid before registering panels
-                if (this.Id == Guid.Empty)
-                {
-                    errorMessage = "Plugin GUID is Guid.Empty - assembly configuration issue";
-                    RhinoApp.WriteLine("RhinoCNC: ERROR - Plugin ID is Guid.Empty!");
-                    return LoadReturnCode.ErrorShowDialog;
-                }
-                
-                // Register panels immediately - the GUID should be available now
-                try
-                {
-                    RhinoApp.WriteLine("RhinoCNC: Registering Element Outliner panel...");
-                    Rhino.UI.Panels.RegisterPanel(this, typeof(ElementOutlinerPanel), "Element Outliner", null);
-                    RhinoApp.WriteLine("RhinoCNC: Element Outliner panel registered successfully");
-                }
-                catch (Exception panelEx)
-                {
-                    RhinoApp.WriteLine($"RhinoCNC: Error registering Element Outliner panel: {panelEx.Message}");
-                    throw;
-                }
-                
-                try
-                {
-                    RhinoApp.WriteLine("RhinoCNC: Registering Material Palette panel...");
-                    Rhino.UI.Panels.RegisterPanel(this, typeof(MaterialPalettePanel), "Material Palette", null);
-                    RhinoApp.WriteLine("RhinoCNC: Material Palette panel registered successfully");
-                }
-                catch (Exception panelEx)
-                {
-                    RhinoApp.WriteLine($"RhinoCNC: Error registering Material Palette panel: {panelEx.Message}");
-                    throw;
-                }
+
+                // Defer heavy initialization to avoid blocking Rhino's startup process
+                _initializationTask = InitializeServicesAsync();
+
+                // Register panels immediately
+                Rhino.UI.Panels.RegisterPanel(this, typeof(ElementOutlinerPanelHost), "Element Outliner", null);
+                Rhino.UI.Panels.RegisterPanel(this, typeof(MaterialPalettePanelHost), "Material Palette", null);
 
                 RhinoApp.WriteLine("RhinoCNC Production Suite: Plugin loaded successfully!");
                 return LoadReturnCode.Success;
             }
-            catch (System.Exception ex)
+            catch (System.Exception e)
             {
-                errorMessage = $"Failed to load RhinoCNC plugin: {ex.Message}";
-                RhinoApp.WriteLine($"RhinoCNC: Error during plugin load: {ex.Message}");
-                RhinoApp.WriteLine($"RhinoCNC: Stack trace: {ex.StackTrace}");
+                errorMessage = e.Message;
+                RhinoApp.WriteLine($"RhinoCNC: CRITICAL LOAD FAILURE: {e.Message}");
                 return LoadReturnCode.ErrorShowDialog;
+            }
+        }
+
+        private async Task InitializeServicesAsync()
+        {
+            try
+            {
+                var dataDir = GetDataDirectory();
+                var materialCatalogPath = Path.Combine(dataDir, "materials.json");
+                var elementsPath = Path.Combine(dataDir, "elements.json");
+
+                MaterialCatalog = await MaterialCatalogService.CreateAsync(materialCatalogPath);
+                
+                ElementOutliner = new ElementOutlinerService(elementsPath, MaterialCatalog);
+                await ElementOutliner.InitializeAsync();
+                
+                RhinoApp.WriteLine("RhinoCNC: All services initialized successfully.");
+            }
+            catch (Exception e)
+            {
+                RhinoApp.WriteLine($"RhinoCNC: CRITICAL SERVICE INIT FAILURE: {e.Message}");
+            }
+        }
+
+        public async Task EnsureServicesInitializedAsync()
+        {
+            if (_initializationTask != null)
+            {
+                await _initializationTask;
             }
         }
 
@@ -157,7 +123,9 @@ namespace RhinoCncSuite
         protected override void OnShutdown()
         {
             RhinoApp.WriteLine("RhinoCNC Production Suite unloaded.");
-            base.OnShutdown();
+            MaterialCatalog?.SaveMaterialsAsync().Wait();
+            ElementOutliner?.SaveElementsAsync().Wait();
+            Instance = null;
         }
     }
 } 

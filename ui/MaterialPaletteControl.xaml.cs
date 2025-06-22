@@ -78,19 +78,25 @@ namespace RhinoCncSuite.ui
         {
             try
             {
-                // Check if plugin instance is available
-                if (RhinoCncPlugin.Instance == null)
+                var plugin = RhinoCncPlugin.Instance;
+                if (plugin == null)
                 {
                     RhinoApp.WriteLine("RhinoCNC: Plugin instance is null during MaterialPalette initialization");
                     return;
                 }
 
-            _materialCatalogService = await RhinoCncPlugin.Instance.GetMaterialCatalogAsync();
-            
-            if (_materialCatalogService != null)
-            {
-                _materialCatalogService.CatalogChanged += OnCatalogChanged;
-                LoadProjectMaterials();
+                await plugin.EnsureServicesInitializedAsync();
+                
+                _materialCatalogService = plugin.MaterialCatalog;
+                
+                if (_materialCatalogService != null)
+                {
+                    _materialCatalogService.CatalogChanged += OnCatalogChanged;
+                    LoadProjectMaterials();
+                }
+                else
+                {
+                    RhinoApp.WriteLine("RhinoCNC: MaterialCatalogService is null after initialization.");
                 }
             }
             catch (Exception ex)
@@ -113,7 +119,6 @@ namespace RhinoCncSuite.ui
                 {
                     var random = new Random();
                     var defaultMaterials = _materialCatalogService.Materials
-                        .Where(m => m.Type == MaterialType.Sheet)
                         .OrderBy(m => random.Next()) // Randomize
                         .Take(5); // Take 5 random materials
                     
@@ -367,43 +372,29 @@ namespace RhinoCncSuite.ui
         #region Core Logic
         private void AssignMaterialToSelected(CncMaterial material)
         {
-            try
+            var doc = RhinoDoc.ActiveDoc;
+            if (doc == null || material == null)
+                return;
+
+            var selectedObjects = doc.Objects.GetSelectedObjects(false, false);
+            if (!selectedObjects.Any())
             {
-                var selectedObjects = RhinoDoc.ActiveDoc.Objects.GetSelectedObjects(false, false);
-                int assignedCount = 0;
-                
-                // Ensure we have a valid color - use material color or fallback
-                string colorString = material.Color;
-                if (string.IsNullOrEmpty(colorString))
-                {
-                    colorString = GetFallbackColor(material.Name);
-                }
-                
-                var drawingColor = System.Drawing.ColorTranslator.FromHtml(colorString);
-
-                foreach (var obj in selectedObjects)
-                {
-                    obj.Attributes.SetUserString("cnc.material.id", material.Id);
-                    obj.Attributes.SetUserString("cnc.material.name", material.Name);
-                    obj.Attributes.ColorSource = Rhino.DocObjects.ObjectColorSource.ColorFromObject;
-                    obj.Attributes.ObjectColor = drawingColor;
-                    obj.CommitChanges();
-                    assignedCount++;
-                }
-
-                if (assignedCount > 0)
-                {
-                    RhinoApp.WriteLine($"RhinoCNC: Assigned '{material.Name}' to {assignedCount} object(s) with color {colorString}.");
-                    RhinoDoc.ActiveDoc.Views.Redraw();
-                }
-                else
-                {
-                    RhinoApp.WriteLine("RhinoCNC: No objects selected for material assignment.");
-                }
+                RhinoApp.WriteLine("RhinoCNC: No objects selected. Select objects first to assign a material.");
+                return;
             }
-            catch (Exception ex)
+
+            int changedCount = 0;
+            foreach (var rhinoObject in selectedObjects)
             {
-                RhinoApp.WriteLine($"RhinoCNC: Error assigning material: {ex.Message}");
+                rhinoObject.Attributes.SetUserString("RhinoCncMaterialId", material.Id.ToString());
+                rhinoObject.CommitChanges();
+                changedCount++;
+            }
+
+            if (changedCount > 0)
+            {
+                RhinoApp.WriteLine($"RhinoCNC: Assigned material '{material.Name}' to {changedCount} object(s).");
+                doc.Views.Redraw();
             }
         }
         
@@ -424,100 +415,61 @@ namespace RhinoCncSuite.ui
 
         private void SelectObjectsWithMaterial(CncMaterial material)
         {
-            try
-            {
-                var doc = RhinoDoc.ActiveDoc;
-                
-                // Get ALL objects (both visible and hidden) that have this material assigned
-                var allObjects = doc.Objects.GetObjectList(Rhino.DocObjects.ObjectType.AnyObject);
-                var objectsWithMaterial = new List<Rhino.DocObjects.RhinoObject>();
+            if (material == null) return;
+            var doc = RhinoDoc.ActiveDoc;
+            if (doc == null) return;
 
-                foreach (var obj in allObjects)
+            var rhinoObjects = doc.Objects.FindByUserString("RhinoCncMaterialId", material.Id.ToString(), true);
+            
+            doc.Objects.UnselectAll();
+
+            if (rhinoObjects != null && rhinoObjects.Any())
+            {
+                // Count visible and hidden objects
+                var visibleObjects = rhinoObjects.Where(o => !o.IsHidden).ToList();
+                var hiddenObjects = rhinoObjects.Where(o => o.IsHidden).ToList();
+                
+                // Select only visible objects (can't select hidden objects)
+                int selectedCount = 0;
+                foreach (var obj in visibleObjects)
                 {
-                    var materialId = obj.Attributes.GetUserString("cnc.material.id");
-                    if (materialId == material.Id)
+                    if (doc.Objects.Select(obj.Id))
                     {
-                        objectsWithMaterial.Add(obj);
+                        selectedCount++;
                     }
                 }
-
-                if (objectsWithMaterial.Any())
+                
+                doc.Views.Redraw();
+                
+                if (hiddenObjects.Any())
                 {
-                    // Count visible and hidden objects
-                    var visibleObjects = objectsWithMaterial.Where(o => !o.IsHidden).ToList();
-                    var hiddenObjects = objectsWithMaterial.Where(o => o.IsHidden).ToList();
-                    
-                    // Clear current selection
-                    doc.Objects.UnselectAll();
-                    
-                    // Select only visible objects (can't select hidden objects)
-                    int selectedCount = 0;
-                    foreach (var obj in visibleObjects)
-                    {
-                        if (doc.Objects.Select(obj.Id))
-                        {
-                            selectedCount++;
-                        }
-                    }
-                    
-                    doc.Views.Redraw();
-                    
-                    if (hiddenObjects.Any())
-                    {
-                        RhinoApp.WriteLine($"RhinoCNC: Selected {selectedCount} visible object(s) with material '{material.Name}'. {hiddenObjects.Count} object(s) with this material are hidden.");
-                    }
-                    else
-                    {
-                        RhinoApp.WriteLine($"RhinoCNC: Selected {selectedCount} object(s) with material '{material.Name}'.");
-                    }
+                    RhinoApp.WriteLine($"RhinoCNC: Selected {selectedCount} visible object(s) with material '{material.Name}'. {hiddenObjects.Count} object(s) with this material are hidden.");
                 }
                 else
                 {
-                    RhinoApp.WriteLine($"RhinoCNC: No objects found with material '{material.Name}'.");
+                    RhinoApp.WriteLine($"RhinoCNC: Selected {selectedCount} object(s) with material '{material.Name}'.");
                 }
             }
-            catch (Exception ex)
+            else
             {
-                RhinoApp.WriteLine($"RhinoCNC: Error selecting objects: {ex.Message}");
+                RhinoApp.WriteLine($"RhinoCNC: No objects found with material '{material.Name}'.");
             }
         }
         
         private void ToggleVisibilityForMaterial(CncMaterial material)
         {
+            if (material == null) return;
+
             var doc = RhinoDoc.ActiveDoc;
             if (doc == null) return;
 
-            try
+            var rhinoObjects = doc.Objects.FindByUserString("RhinoCncMaterialId", material.Id.ToString(), true);
+
+            if (rhinoObjects != null && rhinoObjects.Any())
             {
-                // Build enumerator settings to include hidden and normal objects
-                var settings = new Rhino.DocObjects.ObjectEnumeratorSettings
-                {
-                    ObjectTypeFilter = Rhino.DocObjects.ObjectType.AnyObject,
-                    HiddenObjects = true,
-                    NormalObjects = true,
-                    LockedObjects = true
-                };
-
-                var objects = doc.Objects.GetObjectList(settings);
-                var materialObjects = new List<Rhino.DocObjects.RhinoObject>();
-                foreach (var obj in objects)
-                {
-                    if (obj == null) continue;
-                    if (obj.Attributes.GetUserString("cnc.material.id") == material.Id)
-                    {
-                        materialObjects.Add(obj);
-                    }
-                }
-
-                if (!materialObjects.Any())
-                {
-                    RhinoApp.WriteLine($"RhinoCNC: No objects found with material '{material.Name}'.");
-                    return;
-                }
-
                 // Separate visible vs hidden
-                var visible = materialObjects.Where(o => !o.IsHidden).ToList();
-                var hidden = materialObjects.Where(o => o.IsHidden).ToList();
+                var visible = rhinoObjects.Where(o => !o.IsHidden).ToList();
+                var hidden = rhinoObjects.Where(o => o.IsHidden).ToList();
 
                 if (visible.Any())
                 {
@@ -540,9 +492,9 @@ namespace RhinoCncSuite.ui
 
                 doc.Views.Redraw();
             }
-            catch (Exception ex)
+            else
             {
-                RhinoApp.WriteLine($"RhinoCNC: Error toggling visibility for material '{material?.Name}': {ex.Message}");
+                RhinoApp.WriteLine($"RhinoCNC: No objects found with material '{material.Name}'.");
             }
         }
         
