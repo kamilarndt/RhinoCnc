@@ -73,6 +73,14 @@ if ($Build.IsPresent) {
     }
 }
 
+# Clear plugin settings to force a clean load
+$PluginSettingsDir = Join-Path ([Environment]::GetFolderPath('ApplicationData')) "McNeel\Rhinoceros\8.0\Plug-ins\RhinoCNC Production Suite (B7A84A1C-4F2D-4E8A-9C5B-8D3F7E6A5B2C)"
+if (Test-Path $PluginSettingsDir) {
+    Write-Host "Clearing cached plugin settings at: $PluginSettingsDir" -ForegroundColor Yellow
+    Remove-Item -Path $PluginSettingsDir -Recurse -Force
+    Write-Host "Plugin settings cleared." -ForegroundColor Green
+}
+
 # Check if plugin exists
 if (-not (Test-Path $PluginPath)) {
     Write-Host "ERROR: Plugin not found at: $PluginPath" -ForegroundColor Red
