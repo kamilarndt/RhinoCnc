@@ -55,21 +55,26 @@ namespace RhinoCncSuite.ui
         {
             try
             {
-                // Check if plugin instance is available
-                if (RhinoCncPlugin.Instance == null)
+                var plugin = RhinoCncPlugin.Instance;
+                if (plugin == null)
                 {
                     RhinoApp.WriteLine("RhinoCNC: Plugin instance is null during ElementOutliner initialization");
                     return;
                 }
 
-            // Asynchronously get both services
-            _elementService = await RhinoCncPlugin.Instance.GetElementOutlinerAsync();
-            _materialCatalogService = await RhinoCncPlugin.Instance.GetMaterialCatalogAsync();
+                await plugin.EnsureServicesInitializedAsync();
 
-            if (_elementService != null)
-            {
-                _elementService.ElementsChanged += ElementService_ElementsChanged;
-                LoadElements();
+                _elementService = plugin.ElementOutliner;
+                _materialCatalogService = plugin.MaterialCatalog;
+
+                if (_elementService != null)
+                {
+                    _elementService.ElementsChanged += ElementService_ElementsChanged;
+                    LoadElements();
+                }
+                else
+                {
+                    RhinoApp.WriteLine("RhinoCNC: ElementOutlinerService is null after initialization.");
                 }
             }
             catch (Exception ex)
@@ -231,13 +236,13 @@ namespace RhinoCncSuite.ui
         /// <summary>
         /// Gets material name by ID
         /// </summary>
-        private string GetMaterialName(string materialId)
+        private string GetMaterialName(Guid? materialId)
         {
-            if (string.IsNullOrEmpty(materialId))
-                return null;
+            if (!materialId.HasValue || materialId.Value == Guid.Empty)
+                return "N/A";
 
-            var material = _materialCatalogService?.GetMaterialById(materialId);
-            return material?.Name;
+            var material = _materialCatalogService?.GetMaterialById(materialId.Value);
+            return material?.Name ?? "Unknown Material";
         }
 
         /// <summary>
@@ -338,21 +343,14 @@ namespace RhinoCncSuite.ui
             {
                 if (_selectedElement != null)
                 {
-                    var result = MessageBox.Show(
-                        $"Are you sure you want to delete '{_selectedElement.Name}'?",
-                        "Confirm Delete",
-                        MessageBoxButton.YesNo,
-                        MessageBoxImage.Question
-                    );
-
-                    if (result == MessageBoxResult.Yes)
+                    if (MessageBox.Show($"Are you sure you want to delete '{_selectedElement.Name}'?", "Confirm Delete", MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.Yes)
                     {
-                        if (_elementService != null)
+                        var success = await _elementService.RemoveElementAsync(_selectedElement.Id);
+                        if (success)
                         {
-                            await _elementService.RemoveElementAsync(_selectedElement.Id);
+                            RhinoApp.WriteLine($"RhinoCNC: Element '{_selectedElement.Name}' deleted.");
+                            UpdateDetailsPanel(null);
                         }
-                        RhinoApp.WriteLine($"RhinoCNC: Deleted element '{_selectedElement.Name}'.");
-                        UpdateDetailsPanel(null);
                     }
                 }
             }
@@ -385,6 +383,11 @@ namespace RhinoCncSuite.ui
                     {
                         var element = new ElementInfo(blockDef.Name, blockDef.Id.ToString(), ElementType.Block);
                         newElements.Add(element);
+                    }
+                    else
+                    {
+                        UpdateElementInfoProperties(existingElement, doc.Objects.FindId(Guid.Parse(existingElement.RhinoId)));
+                        await _elementService.UpdateElementAsync(existingElement);
                     }
                 }
 
@@ -433,7 +436,7 @@ namespace RhinoCncSuite.ui
                         var fileInfo = new FileInfo(filename);
                         var attachedFile = new AttachedFile
                         {
-                            Id = Guid.NewGuid().ToString(),
+                            Id = Guid.NewGuid(),
                             FileName = fileInfo.Name,
                             FilePath = filename,
                             FileSize = fileInfo.Length,
@@ -597,21 +600,27 @@ namespace RhinoCncSuite.ui
 
         private void UpdateElementInfoProperties(ElementInfo elementInfo, RhinoObject rhinoObject)
         {
-            var doc = RhinoDoc.ActiveDoc;
-            if (doc == null) return;
-
-            // Material Info
-            var materialIdStr = rhinoObject.Attributes.GetUserString("cnc.material.id");
-            if (!string.IsNullOrEmpty(materialIdStr))
+            var materialIdStr = rhinoObject.Attributes.GetUserString("RhinoCncMaterialId");
+            if (Guid.TryParse(materialIdStr, out Guid materialId))
             {
-                var material = _materialCatalogService?.GetMaterialById(materialIdStr);
-                elementInfo.MaterialName = material?.Name ?? "N/A";
-                elementInfo.MaterialColor = material?.Color ?? "#808080"; // Default to gray if no color
+                elementInfo.MaterialId = materialId;
             }
-            else
+        }
+
+        private void SelectInRhinoButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (_selectedElement?.RhinoId != null && Guid.TryParse(_selectedElement.RhinoId, out Guid rhinoGuid))
             {
-                elementInfo.MaterialName = "Unassigned";
-                elementInfo.MaterialColor = "#808080";
+                var rhinoObject = RhinoDoc.ActiveDoc.Objects.FindId(rhinoGuid);
+                if (rhinoObject != null)
+                {
+                    rhinoObject.Select(true, true);
+                    RhinoDoc.ActiveDoc.Views.Redraw();
+                }
+                else
+                {
+                    MessageBox.Show("Could not find the corresponding object in the Rhino document.", "Object Not Found", MessageBoxButton.OK, MessageBoxImage.Warning);
+                }
             }
         }
     }

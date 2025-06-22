@@ -6,7 +6,7 @@
   "compilationOptions": {},
   "targets": {
     ".NETCoreApp,Version=v8.0": {
-      "RhinoCncSuite/1.0.0": {
+      "RhinoCncSuite/1.0": {
         "dependencies": {
           "Grasshopper": "8.19.25132.1001",
           "Newtonsoft.Json": "13.0.3",
@@ -76,7 +76,7 @@
     }
   },
   "libraries": {
-    "RhinoCncSuite/1.0.0": {
+    "RhinoCncSuite/1.0": {
       "type": "project",
       "serviceable": false,
       "sha512": ""

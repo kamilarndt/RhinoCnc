@@ -9,14 +9,13 @@ using RhinoCncSuite.Models;
 namespace RhinoCncSuite.Services
 {
     /// <summary>
-    /// Service for managing elements in the Element Outliner
+    /// Service for providing element information for the outliner.
     /// </summary>
     public class ElementOutlinerService
     {
-        private readonly string _elementsFilePath;
-        private List<ElementInfo> _elements;
+        private readonly string _filePath;
         private readonly MaterialCatalogService _materialCatalogService;
-        private readonly object _lock = new object();
+        public List<ElementInfo> Elements { get; private set; }
 
         /// <summary>
         /// Event fired when the elements collection changes
@@ -24,30 +23,16 @@ namespace RhinoCncSuite.Services
         public event EventHandler<ElementChangedEventArgs> ElementsChanged;
 
         /// <summary>
-        /// Gets a read-only list of all elements
-        /// </summary>
-        public IReadOnlyList<ElementInfo> Elements
-        {
-            get
-            {
-                lock (_lock)
-                {
-                    return _elements.AsReadOnly();
-                }
-            }
-        }
-
-        /// <summary>
         /// Constructor
         /// </summary>
-        public ElementOutlinerService(string elementsFilePath, MaterialCatalogService materialCatalogService)
+        public ElementOutlinerService(string filePath, MaterialCatalogService materialCatalogService)
         {
-            if (string.IsNullOrEmpty(elementsFilePath))
-                throw new ArgumentNullException(nameof(elementsFilePath));
+            if (string.IsNullOrEmpty(filePath))
+                throw new ArgumentNullException(nameof(filePath));
 
-            _elementsFilePath = elementsFilePath;
+            _filePath = filePath;
             _materialCatalogService = materialCatalogService ?? throw new ArgumentNullException(nameof(materialCatalogService));
-            _elements = new List<ElementInfo>();
+            Elements = new List<ElementInfo>();
         }
 
         /// <summary>
@@ -61,24 +46,14 @@ namespace RhinoCncSuite.Services
         /// <summary>
         /// Loads elements from the JSON file
         /// </summary>
-        public async Task LoadElementsAsync()
+        private async Task LoadElementsAsync()
         {
             try
             {
-                var directory = Path.GetDirectoryName(_elementsFilePath);
-                if (!Directory.Exists(directory))
+                if (File.Exists(_filePath))
                 {
-                    Directory.CreateDirectory(directory);
-                }
-
-                if (File.Exists(_elementsFilePath))
-                {
-                    var json = await Task.Run(() => File.ReadAllText(_elementsFilePath));
-                    var loadedElements = JsonConvert.DeserializeObject<List<ElementInfo>>(json) ?? new List<ElementInfo>();
-                    lock (_lock)
-                    {
-                        _elements = loadedElements;
-                    }
+                    var json = await File.ReadAllTextAsync(_filePath);
+                    Elements = JsonConvert.DeserializeObject<List<ElementInfo>>(json) ?? new List<ElementInfo>();
                 }
                 else
                 {
@@ -90,10 +65,7 @@ namespace RhinoCncSuite.Services
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"Error loading elements: {ex.Message}");
-                lock (_lock)
-                {
-                    _elements = new List<ElementInfo>();
-                }
+                Elements = new List<ElementInfo>();
                 // Re-throw to indicate that initialization failed
                 throw;
             }
@@ -104,22 +76,10 @@ namespace RhinoCncSuite.Services
         /// </summary>
         public async Task SaveElementsAsync()
         {
-            List<ElementInfo> elementsToSave;
-            lock (_lock)
-            {
-                elementsToSave = new List<ElementInfo>(_elements);
-            }
-
             try
             {
-                var directory = Path.GetDirectoryName(_elementsFilePath);
-                if (!Directory.Exists(directory))
-                {
-                    Directory.CreateDirectory(directory);
-                }
-                
-                var jsonContent = JsonConvert.SerializeObject(elementsToSave, Formatting.Indented);
-                await Task.Run(() => File.WriteAllText(_elementsFilePath, jsonContent));
+                var jsonContent = JsonConvert.SerializeObject(Elements, Formatting.Indented);
+                await File.WriteAllTextAsync(_filePath, jsonContent);
             }
             catch (Exception ex)
             {
@@ -136,14 +96,10 @@ namespace RhinoCncSuite.Services
         {
             if (element == null) return false;
 
-            lock (_lock)
-            {
-                if (_elements.Any(e => e.Id == element.Id))
-                    return false;
+            if (Elements.Any(e => e.Id == element.Id))
+                return false;
 
-                _elements.Add(element);
-            }
-
+            Elements.Add(element);
             await SaveElementsAsync();
             OnElementsChanged(new ElementChangedEventArgs(ElementChangeType.Added, element));
             return true;
@@ -157,16 +113,12 @@ namespace RhinoCncSuite.Services
         {
             if (elementsToAdd == null || !elementsToAdd.Any()) return false;
 
-            lock (_lock)
-            {
-                // Filter out elements that already exist
-                var newElements = elementsToAdd.Where(toAdd => !_elements.Any(e => e.Id == toAdd.Id)).ToList();
-                if (!newElements.Any())
-                    return false;
+            // Filter out elements that already exist
+            var newElements = elementsToAdd.Where(toAdd => !Elements.Any(e => e.Id == toAdd.Id)).ToList();
+            if (!newElements.Any())
+                return false;
 
-                _elements.AddRange(newElements);
-            }
-
+            Elements.AddRange(newElements);
             await SaveElementsAsync();
             // Fire a general "reloaded" event as multiple items were added
             OnElementsChanged(new ElementChangedEventArgs(ElementChangeType.CollectionReloaded, null));
@@ -181,16 +133,12 @@ namespace RhinoCncSuite.Services
         {
             if (element == null) return false;
 
-            lock (_lock)
-            {
-                var existingIndex = _elements.FindIndex(e => e.Id == element.Id);
-                if (existingIndex == -1)
-                    return false;
+            var existingIndex = Elements.FindIndex(e => e.Id == element.Id);
+            if (existingIndex == -1)
+                return false;
 
-                element.ModifiedDate = DateTime.Now;
-                _elements[existingIndex] = element;
-            }
-
+            element.ModifiedDate = DateTime.Now;
+            Elements[existingIndex] = element;
             await SaveElementsAsync();
             OnElementsChanged(new ElementChangedEventArgs(ElementChangeType.Updated, element));
             return true;
@@ -200,23 +148,18 @@ namespace RhinoCncSuite.Services
         /// Removes an element
         /// </summary>
         /// <param name="elementId">ID of element to remove</param>
-        public async Task<bool> RemoveElementAsync(string elementId)
+        public async Task<bool> RemoveElementAsync(Guid elementId)
         {
-            if (string.IsNullOrEmpty(elementId)) return false;
+            if (elementId == Guid.Empty) return false;
 
-            ElementInfo removedElement = null;
-            lock (_lock)
+            var removedElement = Elements.FirstOrDefault(e => e.Id == elementId);
+            if (removedElement != null && Elements.Remove(removedElement))
             {
-                removedElement = _elements.FirstOrDefault(e => e.Id == elementId);
-                if (removedElement == null)
-                    return false;
-
-                _elements.Remove(removedElement);
+                await SaveElementsAsync();
+                OnElementsChanged(new ElementChangedEventArgs(ElementChangeType.Removed, removedElement));
+                return true;
             }
-
-            await SaveElementsAsync();
-            OnElementsChanged(new ElementChangedEventArgs(ElementChangeType.Removed, removedElement));
-            return true;
+            return false;
         }
 
         /// <summary>
@@ -224,14 +167,10 @@ namespace RhinoCncSuite.Services
         /// </summary>
         /// <param name="elementId">Element ID</param>
         /// <returns>Element if found, null otherwise</returns>
-        public ElementInfo GetElementById(string elementId)
+        public ElementInfo GetElementById(Guid elementId)
         {
-            if (string.IsNullOrEmpty(elementId)) return null;
-
-            lock (_lock)
-            {
-                return _elements.FirstOrDefault(e => e.Id == elementId);
-            }
+            if (elementId == Guid.Empty) return null;
+            return Elements.FirstOrDefault(e => e.Id == elementId);
         }
 
         /// <summary>
@@ -243,10 +182,7 @@ namespace RhinoCncSuite.Services
         {
             if (string.IsNullOrEmpty(rhinoId)) return null;
 
-            lock (_lock)
-            {
-                return _elements.FirstOrDefault(e => e.RhinoId == rhinoId);
-            }
+            return Elements.FirstOrDefault(e => e.RhinoId == rhinoId);
         }
 
         /// <summary>
@@ -259,16 +195,13 @@ namespace RhinoCncSuite.Services
             if (string.IsNullOrWhiteSpace(searchTerm))
                 return Elements.ToList();
 
-            lock (_lock)
-            {
-                return _elements
-                    .Where(e =>
-                        (e.Name != null && e.Name.IndexOf(searchTerm, StringComparison.OrdinalIgnoreCase) >= 0) ||
-                        (e.Description != null && e.Description.IndexOf(searchTerm, StringComparison.OrdinalIgnoreCase) >= 0) ||
-                        (e.Tags != null && e.Tags.Any(tag => tag.IndexOf(searchTerm, StringComparison.OrdinalIgnoreCase) >= 0))
-                    )
-                    .ToList();
-            }
+            return Elements
+                .Where(e =>
+                    (e.Name != null && e.Name.IndexOf(searchTerm, StringComparison.OrdinalIgnoreCase) >= 0) ||
+                    (e.Description != null && e.Description.IndexOf(searchTerm, StringComparison.OrdinalIgnoreCase) >= 0) ||
+                    (e.Tags != null && e.Tags.Any(tag => tag.IndexOf(searchTerm, StringComparison.OrdinalIgnoreCase) >= 0))
+                )
+                .ToList();
         }
 
         /// <summary>
@@ -278,10 +211,7 @@ namespace RhinoCncSuite.Services
         /// <returns>List of elements of the specified type</returns>
         public List<ElementInfo> GetElementsByType(ElementType type)
         {
-            lock (_lock)
-            {
-                return _elements.Where(e => e.Type == type).ToList();
-            }
+            return Elements.Where(e => e.Type == type).ToList();
         }
 
         /// <summary>
@@ -291,10 +221,7 @@ namespace RhinoCncSuite.Services
         /// <returns>List of elements with the specified status</returns>
         public List<ElementInfo> GetElementsByStatus(ElementStatus status)
         {
-            lock (_lock)
-            {
-                return _elements.Where(e => e.Status == status).ToList();
-            }
+            return Elements.Where(e => e.Status == status).ToList();
         }
 
         /// <summary>
@@ -302,14 +229,10 @@ namespace RhinoCncSuite.Services
         /// </summary>
         /// <param name="materialId">Material ID</param>
         /// <returns>List of elements with the specified material</returns>
-        public List<ElementInfo> GetElementsByMaterial(string materialId)
+        public List<ElementInfo> GetElementsByMaterial(Guid? materialId)
         {
-            if (string.IsNullOrEmpty(materialId)) return new List<ElementInfo>();
-
-            lock (_lock)
-            {
-                return _elements.Where(e => e.MaterialId == materialId).ToList();
-            }
+            if (!materialId.HasValue || materialId.Value == Guid.Empty) return new List<ElementInfo>();
+            return Elements.Where(e => e.MaterialId == materialId).ToList();
         }
 
         /// <summary>
@@ -319,7 +242,7 @@ namespace RhinoCncSuite.Services
         /// <param name="filePath">Path to the file to attach</param>
         /// <param name="description">Description of the file</param>
         /// <param name="category">File category</param>
-        public async Task<bool> AttachFileToElementAsync(string elementId, string filePath, string description = null, FileCategory category = FileCategory.Other)
+        public async Task<bool> AttachFileToElementAsync(Guid elementId, string filePath, string description = null, FileCategory category = FileCategory.Other)
         {
             var element = GetElementById(elementId);
             if (element == null || !File.Exists(filePath))
@@ -340,7 +263,7 @@ namespace RhinoCncSuite.Services
         /// </summary>
         /// <param name="elementId">Element ID</param>
         /// <param name="fileId">Attached file ID</param>
-        public async Task<bool> RemoveAttachedFileAsync(string elementId, string fileId)
+        public async Task<bool> RemoveAttachedFileAsync(Guid elementId, Guid fileId)
         {
             var element = GetElementById(elementId);
             if (element == null)
@@ -360,9 +283,9 @@ namespace RhinoCncSuite.Services
         /// <param name="blockName">Name of the Rhino block</param>
         /// <param name="blockId">Rhino block ID</param>
         /// <returns>Created element</returns>
-        public async Task<ElementInfo> CreateElementFromBlockAsync(string blockName, string blockId)
+        public async Task<ElementInfo> CreateElementFromBlockAsync(string blockName, Guid blockId)
         {
-            var element = new ElementInfo(blockName, blockId, ElementType.Block);
+            var element = new ElementInfo(blockName, blockId.ToString(), ElementType.Block);
             
             if (await AddElementAsync(element))
             {
@@ -377,10 +300,7 @@ namespace RhinoCncSuite.Services
         /// </summary>
         private void InitializeDefaultElements()
         {
-            lock (_lock)
-            {
-                _elements = new List<ElementInfo>();
-            }
+            Elements = new List<ElementInfo>();
         }
 
         /// <summary>

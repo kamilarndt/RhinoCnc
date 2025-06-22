@@ -13,6 +13,10 @@
     <AssemblyTitle>RhinoCNC Production Suite</AssemblyTitle>
     <AssemblyDescription>Material Management and Element Organization for Rhino 8</AssemblyDescription>
     <EnableWindowsTargeting>true</EnableWindowsTargeting>
+    <RhinoPluginType>Rhino7</RhinoPluginType>
+    <IsPackable>false</IsPackable>
+    <Version>1.0</Version>
+    <Authors>Kamil Arndt</Authors>
   </PropertyGroup>
 
   <ItemGroup>

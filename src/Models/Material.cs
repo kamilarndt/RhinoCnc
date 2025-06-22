@@ -10,7 +10,7 @@ namespace RhinoCncSuite.Models
     /// Represents a material used in CNC manufacturing.
     /// This class defines the structure for materials in both the Global Catalog and Project Palette.
     /// </summary>
-    public class Material : INotifyPropertyChanged
+    public class Material
     {
         private static readonly Regex UnitRegex = new Regex(@"(\d+(\.\d+)?)\s*(mm|cm|m)", RegexOptions.Compiled | RegexOptions.IgnoreCase);
         private const double InchToMmFactor = 25.4;
@@ -21,7 +21,7 @@ namespace RhinoCncSuite.Models
         /// Unique identifier for the material (UUID)
         /// </summary>
         [JsonProperty("id")]
-        public string Id { get; set; }
+        public Guid Id { get; set; } = Guid.NewGuid();
 
         /// <summary>
         /// Display name of the material (e.g., "MDF 18mm", "Plywood Birch 12mm")
@@ -123,7 +123,7 @@ namespace RhinoCncSuite.Models
         [JsonConstructor]
         public Material()
         {
-            Id = Guid.NewGuid().ToString();
+            Id = Guid.NewGuid();
         }
 
         /// <summary>
@@ -194,12 +194,17 @@ namespace RhinoCncSuite.Models
             return (Material)this.MemberwiseClone();
         }
 
-        public event PropertyChangedEventHandler PropertyChanged;
+        /// <summary>
+        /// Description of the material
+        /// </summary>
+        [JsonProperty("description")]
+        public string Description { get; set; }
 
-        protected virtual void OnPropertyChanged(string propertyName)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
+        /// <summary>
+        /// Hexadecimal color code of the material
+        /// </summary>
+        [JsonProperty("colorHex")]
+        public string ColorHex { get; set; } = "#FFFFFF"; // Default to white
     }
 
     /// <summary>

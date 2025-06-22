@@ -14,7 +14,7 @@ namespace RhinoCncSuite.Models
         /// <summary>
         /// Unique identifier for the element
         /// </summary>
-        public string Id { get; set; }
+        public Guid Id { get; set; } = Guid.NewGuid();
 
         /// <summary>
         /// Name of the element/block
@@ -39,7 +39,7 @@ namespace RhinoCncSuite.Models
         /// <summary>
         /// Material assigned to this element
         /// </summary>
-        public string MaterialId { get; set; }
+        public Guid? MaterialId { get; set; }
 
         /// <summary>
         /// Quantity of this element in the project
@@ -98,7 +98,6 @@ namespace RhinoCncSuite.Models
         /// </summary>
         public ElementInfo()
         {
-            Id = Guid.NewGuid().ToString();
             AttachedFiles = new List<AttachedFile>();
             Tags = new List<string>();
             Quantity = 1;
@@ -136,7 +135,7 @@ namespace RhinoCncSuite.Models
         /// <summary>
         /// Unique identifier for the attached file
         /// </summary>
-        public string Id { get; set; }
+        public Guid Id { get; set; }
 
         /// <summary>
         /// Original filename
@@ -178,7 +177,7 @@ namespace RhinoCncSuite.Models
         /// </summary>
         public AttachedFile()
         {
-            Id = Guid.NewGuid().ToString();
+            Id = Guid.NewGuid();
             AttachedDate = DateTime.Now;
             Category = FileCategory.Other;
         }

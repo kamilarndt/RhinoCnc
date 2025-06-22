@@ -32,10 +32,21 @@ namespace RhinoCncSuite.Commands
         {
             try
             {
-                // Show the Element Outliner panel
-                Panels.OpenPanel(ElementOutlinerPanel.PanelId);
-                RhinoApp.WriteLine("RhinoCNC: Element Outliner panel opened.");
-                return Result.Success;
+                var panelId = typeof(ElementOutlinerPanelHost).GUID;
+                var isVisible = Panels.IsPanelVisible(panelId);
+
+                if (isVisible)
+                {
+                    // Show the Element Outliner panel
+                    Panels.OpenPanel(typeof(ElementOutlinerPanelHost).GUID);
+                    RhinoApp.WriteLine("RhinoCNC: Element Outliner panel opened.");
+                    return Result.Success;
+                }
+                else
+                {
+                    RhinoApp.WriteLine("RhinoCNC: Element Outliner panel is not visible.");
+                    return Result.Failure;
+                }
             }
             catch (System.Exception ex)
             {
