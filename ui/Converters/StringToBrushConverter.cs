@@ -5,22 +5,24 @@ using System.Windows.Media;
 
 namespace RhinoCncSuite.ui.Converters
 {
+    [ValueConversion(typeof(string), typeof(Brush))]
     public class StringToBrushConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            var colorString = value as string;
-            if (string.IsNullOrEmpty(colorString))
-                return new SolidColorBrush(Colors.Gray);
-
-            try
+            if (value is string colorString)
             {
-                return (Brush)new BrushConverter().ConvertFromString(colorString);
+                try
+                {
+                    return new SolidColorBrush((Color)ColorConverter.ConvertFromString(colorString));
+                }
+                catch
+                {
+                    // Return a default brush if conversion fails
+                    return Brushes.Transparent;
+                }
             }
-            catch
-            {
-                return new SolidColorBrush(Colors.Gray);
-            }
+            return Brushes.Transparent;
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

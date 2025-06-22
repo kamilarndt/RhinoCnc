@@ -31,8 +31,9 @@ namespace RhinoCncSuite.ui
         /// </summary>
         public ElementOutlinerControl()
         {
-            InitializeComponent();
-            
+            var uri = new Uri("/ui/ElementOutlinerControl.xaml", UriKind.Relative);
+            System.Windows.Application.LoadComponent(this, uri);
+
             _filteredElements = new List<ElementInfo>();
             
             // Defer service loading until the control is loaded
@@ -70,10 +71,10 @@ namespace RhinoCncSuite.ui
                 _elementService = plugin.ElementOutliner;
                 _materialCatalogService = plugin.MaterialCatalog;
 
-                if (_elementService != null)
-                {
-                    _elementService.ElementsChanged += ElementService_ElementsChanged;
-                    LoadElements();
+            if (_elementService != null)
+            {
+                _elementService.ElementsChanged += ElementService_ElementsChanged;
+                LoadElements();
                 }
                 else
                 {
@@ -352,7 +353,7 @@ namespace RhinoCncSuite.ui
                         if (success)
                         {
                             RhinoApp.WriteLine($"RhinoCNC: Element '{_selectedElement.Name}' deleted.");
-                            UpdateDetailsPanel(null);
+                        UpdateDetailsPanel(null);
                         }
                     }
                 }

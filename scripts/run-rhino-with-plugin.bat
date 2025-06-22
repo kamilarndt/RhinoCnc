@@ -6,7 +6,7 @@ echo RhinoCNC Plugin Development Workflow
 echo ============================================
 
 :: Set paths
-set "PLUGIN_PATH=%~dp0..\bin\Debug\net48\RhinoCncSuite.dll"
+set "PLUGIN_PATH=%~dp0..\bin\Debug\net8.0-windows\RhinoCncSuite.dll"
 set "RHINO_EXE=C:\Program Files\Rhino 8\System\Rhino.exe"
 
 :: Check if Rhino exists

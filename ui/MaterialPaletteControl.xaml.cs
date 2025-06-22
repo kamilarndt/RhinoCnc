@@ -1,15 +1,21 @@
+using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Data;
 using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Shapes;
 using Rhino;
 using Rhino.Geometry;
 using Rhino.DocObjects;
 using RhinoCncSuite.Models;
 using RhinoCncSuite.Services;
 using CncMaterial = RhinoCncSuite.Models.Material;
+using RhinoCncSuite.ui.Converters;
+using System.Linq;
 
 namespace RhinoCncSuite.ui
 {
@@ -23,6 +29,11 @@ namespace RhinoCncSuite.ui
 
         private System.Windows.Point? _startPoint;
 
+        // --- Reusable UI Resources ---
+        private Style _iconButtonStyle;
+        private Geometry _iconVisible, _iconSelect, _iconAssign, _iconLock, _iconLightBulb;
+        private Geometry _iconTiles, _iconList; // Add these for view mode switching
+
         // View mode and tile size properties
         public enum ViewMode { Tiles, List }
         private ViewMode _currentViewMode = ViewMode.Tiles;
@@ -35,27 +46,49 @@ namespace RhinoCncSuite.ui
         /// </summary>
         public MaterialPaletteControl()
         {
-            try
-            {
-                // Explicitly load the XAML using an absolute pack URI. This is the correct way to initialize
-                // a WPF control when it's hosted in an external application like Rhino.
-                var uri = new Uri("/RhinoCncSuite;component/ui/MaterialPaletteControl.xaml", UriKind.Relative);
-                System.Windows.Application.LoadComponent(this, uri);
+            InitializeComponent();
+            ProjectMaterials = new ObservableCollection<CncMaterial>();
+            
+            // Initialize resources for event handlers
+            InitializeResources();
+            
+            // Set data context for binding
+            this.DataContext = this;
+            
+            // Set initial view mode
+            UpdateViewMode();
+            
+            // Wire up events
+            this.Loaded += UserControl_Loaded;
+            this.Unloaded += UserControl_Unloaded;
+            
+            // Enable drag and drop
+            this.AllowDrop = true;
+            
+            RhinoApp.WriteLine("RhinoCNC: MaterialPaletteControl initialized.");
+        }
 
-                ProjectMaterials = new ObservableCollection<CncMaterial>();
-                MaterialItemsControl.ItemsSource = ProjectMaterials;
-                MaterialsListView.ItemsSource = ProjectMaterials;
-                this.DataContext = this;
+        private void InitializeResources()
+        {
+            // --- Button Style ---
+            _iconButtonStyle = new Style(typeof(Button));
+            _iconButtonStyle.Setters.Add(new Setter(Control.BackgroundProperty, Brushes.Transparent));
+            _iconButtonStyle.Setters.Add(new Setter(Control.BorderThicknessProperty, new Thickness(0)));
+            _iconButtonStyle.Setters.Add(new Setter(Control.WidthProperty, 20.0));
+            _iconButtonStyle.Setters.Add(new Setter(Control.HeightProperty, 20.0));
+            _iconButtonStyle.Setters.Add(new Setter(Control.PaddingProperty, new Thickness(2)));
+            _iconButtonStyle.Setters.Add(new Setter(Control.VerticalAlignmentProperty, VerticalAlignment.Center));
 
-                Loaded += UserControl_Loaded;
-                
-                // Set initial view mode state
-                UpdateViewMode();
-            }
-            catch (Exception ex)
-            {
-                RhinoApp.WriteLine($"RhinoCNC: CRITICAL FAILURE in MaterialPaletteControl Constructor: {ex}");
-            }
+            // --- Icon Geometries ---
+            _iconVisible = Geometry.Parse("M12,9A3,3 0 0,0 9,12A3,3 0 0,0 12,15A3,3 0 0,0 15,12A3,3 0 0,0 12,9M12,17A5,5 0 0,1 7,12A5,5 0 0,1 12,7A5,5 0 0,1 17,12A5,5 0 0,1 12,17M12,4.5C7,4.5 2.73,7.61 1,12C2.73,16.39 7,19.5 12,19.5C17,19.5 21.27,16.39 23,12C21.27,7.61 17,4.5 12,4.5Z");
+            _iconSelect = Geometry.Parse("M13.6,13.28L15.23,12L13.17,10.28L14.22,9.03L17.5,11.5L14.22,13.97L13.17,12.72M10,13.28L8.37,12L10.43,10.28L9.38,9.03L6.1,11.5L9.38,13.97L10.43,12.72M13,2A2,2 0 0,1 15,4V15A2,2 0 0,1 13,17H2V19H13A4,4 0 0,0 17,15V4A4,4 0 0,0 13,0H4V2H13Z");
+            _iconAssign = Geometry.Parse("M12.7,13.7L13.3,16.4L15.3,15.8L14.7,13.1L12.7,13.7M11.6,9.9L14.2,7.2L16.3,7.8L13.7,10.5L11.6,9.9M7,12.1L9.6,9.5L11.7,10.1L9.1,12.8L7,12.1M17,2H21V6H17V2M17,8H21V12H17V8M17,14H21V18H17V14M15,20V22H5A2,2 0 0,1 3,20V4A2,2 0 0,1 5,2H15V4H5V20H15Z");
+            _iconLock = Geometry.Parse("M12,17C10.89,17 10,16.1 10,15C10,13.89 10.89,13 12,13A2,2 0 0,1 14,15A2,2 0 0,1 12,17M18,8A2,2 0 0,1 20,10V20A2,2 0 0,1 18,22H6A2,2 0 0,1 4,20V10C4,8.89 4.9,8 6,8H7V6A5,5 0 0,1 12,1A5,5 0 0,1 17,6V8H18M12,3A3,3 0 0,0 9,6V8H15V6A3,3 0 0,0 12,3Z");
+            _iconLightBulb = Geometry.Parse("M12,2A7,7 0 0,0 5,9C5,11.38 6.19,13.47 8,14.74V17A1,1 0 0,0 9,18H15A1,1 0 0,0 16,17V14.74C17.81,13.47 19,11.38 19,9A7,7 0 0,0 12,2M9,21A1,1 0 0,0 10,22H14A1,1 0 0,0 15,21V20H9V21Z");
+            
+            // --- View Mode Icons ---
+            _iconTiles = Geometry.Parse("M4,4H8V8H4V4M10,4H14V8H10V4M16,4H20V8H16V4M4,10H8V14H4V10M10,10H14V14H10V10M16,10H20V14H16V10M4,16H8V20H4V16M10,16H14V20H10V16M16,16H20V20H16V16Z");
+            _iconList = Geometry.Parse("M3,5H9V3H3V5M5,7V9H3V11H9V9H7V7H5M3,13V15H5V17H3V19H9V17H7V15H9V13H3M11,9H21V7H11V9M11,5H21V3H11V5M11,19H21V17H11V19M11,15H21V13H11V15Z");
         }
 
         private async void UserControl_Loaded(object sender, RoutedEventArgs e)
@@ -226,13 +259,20 @@ namespace RhinoCncSuite.ui
             }
         }
 
-        private void ToggleLock_Click(object sender, RoutedEventArgs e)
+        private async void ToggleLock_Click(object sender, RoutedEventArgs e)
         {
             try
             {
                 if (sender is FrameworkElement fe && fe.DataContext is CncMaterial material)
                 {
-                    RhinoApp.WriteLine($"RhinoCNC: Lock toggle is not yet implemented for material '{material.Name}'.");
+                    material.IsLocked = !material.IsLocked;
+
+                    // Persist the change to the catalog
+                    if (_materialCatalogService != null)
+                    {
+                        await _materialCatalogService.AddOrUpdateMaterialAsync(material);
+                        RhinoApp.WriteLine($"RhinoCNC: Material '{material.Name}' IsLocked set to {material.IsLocked} and saved.");
+                    }
                 }
             }
             catch (Exception ex)
@@ -307,8 +347,37 @@ namespace RhinoCncSuite.ui
                     return;
                 }
 
-                // Pass the service instance to the dialog
-                var dialog = new MaterialSelectionDialog(_materialCatalogService, ProjectMaterials);
+                // Try to create the MaterialSelectionDialog
+                MaterialSelectionDialog dialog = null;
+                try
+                {
+                    dialog = new MaterialSelectionDialog(_materialCatalogService, ProjectMaterials);
+                }
+                catch (Exception dialogEx)
+                {
+                    RhinoApp.WriteLine($"RhinoCNC: Error creating MaterialSelectionDialog: {dialogEx.Message}");
+                    
+                    // Fallback: Show available materials in a simple message
+                    var catalogMaterials = _materialCatalogService.GetCatalog();
+                    var availableMaterials = catalogMaterials
+                        .Where(m => !ProjectMaterials.Any(p => p.Name == m.Name && p.Thickness == m.Thickness))
+                        .Take(10) // Show first 10 available materials
+                        .ToList();
+                    
+                    if (availableMaterials.Any())
+                    {
+                        var materialsList = string.Join("\n", availableMaterials.Select(m => $"- {m.Name} ({m.Thickness}mm)"));
+                        var message = $"Material catalog dialog failed to load. Available materials:\n\n{materialsList}\n\nNote: You can still assign materials to objects by selecting them first, then using the assign button on existing palette materials.";
+                        MessageBox.Show(message, "Material Catalog", MessageBoxButton.OK, MessageBoxImage.Information);
+                    }
+                    else
+                    {
+                        MessageBox.Show("Material catalog dialog failed to load and no new materials are available to add.", "Material Catalog Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    }
+                    return;
+                }
+
+                // If dialog was created successfully, show it
                 if (dialog.ShowDialog() == true && dialog.SelectedMaterials.Any())
                 {
                     foreach (var material in dialog.SelectedMaterials)
@@ -323,7 +392,7 @@ namespace RhinoCncSuite.ui
             }
             catch (Exception ex)
             {
-                RhinoApp.WriteLine($"RhinoCNC: Error opening material selection dialog: {ex.Message}");
+                RhinoApp.WriteLine($"RhinoCNC: Error in AddMaterialButton_Click: {ex.Message}");
                 MessageBox.Show($"An error occurred: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
@@ -576,14 +645,18 @@ namespace RhinoCncSuite.ui
             {
                 MaterialItemsControl.Visibility = Visibility.Visible;
                 MaterialsListView.Visibility = Visibility.Collapsed;
-                ViewModeButton.Content = Resources["IconList"];
+                
+                // Set content to list icon to indicate "switch to list view"
+                ViewModeButton.Content = this.FindResource("IconList");
                 ViewModeButton.ToolTip = "Switch to List View";
             }
             else
             {
                 MaterialItemsControl.Visibility = Visibility.Collapsed;
                 MaterialsListView.Visibility = Visibility.Visible;
-                ViewModeButton.Content = Resources["IconTiles"];
+                
+                // Set content to tiles icon to indicate "switch to tiles view"
+                ViewModeButton.Content = this.FindResource("IconTiles");
                 ViewModeButton.ToolTip = "Switch to Tiles View";
             }
         }

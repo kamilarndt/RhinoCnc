@@ -67,7 +67,7 @@
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
                             <TextBlock Text="{Binding Dimensions}" VerticalAlignment="Center" Foreground="Gray"/>
-                            <TextBlock Grid.Column="1" Text="{Binding Thickness}" FontWeight="Bold" FontSize="18" VerticalAlignment="Center"/>
+                            <TextBlock Grid.Column="1" Text="{Binding FormattedThickness}" FontWeight="Bold" FontSize="18" VerticalAlignment="Center"/>
                         </Grid>
                     </Border>
                 </StackPanel>
@@ -95,7 +95,7 @@
                     <StackPanel Grid.Column="2" VerticalAlignment="Center" Margin="10,0">
                         <TextBlock Text="{Binding Name}" FontWeight="Bold"/>
                         <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="{Binding Thickness}" FontWeight="SemiBold" Foreground="Red" Margin="0,0,10,0"/>
+                            <TextBlock Text="{Binding FormattedThickness}" FontWeight="SemiBold" Foreground="Red" Margin="0,0,10,0"/>
                             <TextBlock Text="{Binding Dimensions}" Foreground="Gray"/>
                         </StackPanel>
                     </StackPanel>

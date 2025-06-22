@@ -3,6 +3,7 @@ using System.ComponentModel;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using System.Text.RegularExpressions;
+using System.Runtime.CompilerServices;
 
 namespace RhinoCncSuite.Models
 {
@@ -10,7 +11,7 @@ namespace RhinoCncSuite.Models
     /// Represents a material used in CNC manufacturing.
     /// This class defines the structure for materials in both the Global Catalog and Project Palette.
     /// </summary>
-    public class Material
+    public class Material : INotifyPropertyChanged
     {
         private static readonly Regex UnitRegex = new Regex(@"(\d+(\.\d+)?)\s*(mm|cm|m)", RegexOptions.Compiled | RegexOptions.IgnoreCase);
         private const double InchToMmFactor = 25.4;
@@ -77,9 +78,28 @@ namespace RhinoCncSuite.Models
         [JsonProperty("notes")]
         public string Notes { get; set; }
 
+        private bool _isLocked = false;
+        /// <summary>
+        /// Indicates whether the material is locked for editing
+        /// </summary>
+        [JsonProperty("isLocked")]
+        public bool IsLocked
+        {
+            get => _isLocked;
+            set
+            {
+                if (_isLocked != value)
+                {
+                    _isLocked = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
+
         /// <summary>
         /// Price per square meter of the material
         /// </summary>
+        [JsonProperty("pricePerSqm")]
         public double PricePerSquareMeter { get; set; }
 
         /// <summary>
@@ -92,24 +112,13 @@ namespace RhinoCncSuite.Models
         /// Gets the material name without thickness information for display purposes.
         /// </summary>
         [JsonIgnore]
-        public string DisplayName
-        {
-            get
-            {
-                // Remove thickness pattern like "18mm", "6mm", etc. from the name
-                return _nameRegex.Replace(Name, "").Trim();
-            }
-            set
-            {
-                // This setter is provided to resolve the "property is read-only" compilation error
-            }
-        }
+        public string DisplayName => Name.Replace(" ", "\\n");
 
         /// <summary>
         /// Gets the material thickness as a string without unit, formatted to 1 decimal place if needed.
         /// </summary>
         [JsonIgnore]
-        public string ThicknessDisplay => $"{Thickness:G29}";
+        public string ThicknessDisplay => FormattedThickness.Split(' ')[0];
 
         /// <summary>
         /// Gets the material dimensions as a string (e.g., "2800x2070"). Not serialized.
@@ -204,7 +213,14 @@ namespace RhinoCncSuite.Models
         /// Hexadecimal color code of the material
         /// </summary>
         [JsonProperty("colorHex")]
-        public string ColorHex { get; set; } = "#FFFFFF"; // Default to white
+        public string ColorHex { get; set; } = "#FFFFFF";
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
     }
 
     /// <summary>

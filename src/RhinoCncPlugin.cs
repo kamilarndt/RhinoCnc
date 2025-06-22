@@ -59,7 +59,7 @@ namespace RhinoCncSuite
 
                 // Defer heavy initialization to avoid blocking Rhino's startup process
                 _initializationTask = InitializeServicesAsync();
-
+                
                 // Register panels immediately
                 Rhino.UI.Panels.RegisterPanel(this, typeof(ElementOutlinerPanelHost), "Element Outliner", null);
                 Rhino.UI.Panels.RegisterPanel(this, typeof(MaterialPalettePanelHost), "Material Palette", null);

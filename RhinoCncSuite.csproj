@@ -13,7 +13,7 @@
     <AssemblyTitle>RhinoCNC Production Suite</AssemblyTitle>
     <AssemblyDescription>Material Management and Element Organization for Rhino 8</AssemblyDescription>
     <EnableWindowsTargeting>true</EnableWindowsTargeting>
-    <RhinoPluginType>Rhino7</RhinoPluginType>
+    <RhinoPluginType>Rhino8</RhinoPluginType>
     <IsPackable>false</IsPackable>
     <Version>1.0</Version>
     <Authors>Kamil Arndt</Authors>
@@ -29,15 +29,45 @@
     <FrameworkReference Include="Microsoft.WindowsDesktop.App" />
   </ItemGroup>
 
-
+  <ItemGroup>
+    <Compile Include="Properties\\AssemblyInfo.cs" />
+    <Compile Include="src\\**\\*.cs" />
+    <Compile Include="ui\\Converters\\BooleanToVisibilityConverter.cs" />
+    <Compile Include="ui\\Converters\\IsLockedToBrushConverter.cs" />
+    <Compile Include="ui\\Converters\\StringToBrushConverter.cs" />
+    <Compile Include="ui\\ElementOutlinerControl.xaml.cs">
+      <DependentUpon>ElementOutlinerControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="ui\\MaterialEditDialog.xaml.cs">
+      <DependentUpon>MaterialEditDialog.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="ui\\MaterialPaletteControl.xaml.cs">
+      <DependentUpon>MaterialPaletteControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="ui\\MaterialSelectionDialog.xaml.cs">
+      <DependentUpon>MaterialSelectionDialog.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="ui\\ElementOutlinerPanel.cs" />
+    <Compile Include="ui\\MaterialPalettePanel.cs" />
+  </ItemGroup>
 
   <ItemGroup>
-    <Page Include="ui\**\*.xaml">
+    <Page Include="ui\\ElementOutlinerControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Compile Include="ui\**\*.cs" />
-    <Compile Include="src\**\*.cs" />
+    <Page Include="ui\\MaterialEditDialog.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="ui\\MaterialPaletteControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="ui\\MaterialSelectionDialog.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
 
   <!-- Custom target to run Rhino with plugin after successful build -->
