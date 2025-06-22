@@ -191,10 +191,10 @@ namespace RhinoCncSuite.Models
             FilePath = filePath;
             FileName = Path.GetFileName(filePath);
             FileType = Path.GetExtension(filePath);
-
+            
             try
             {
-                if (File.Exists(filePath))
+            if (File.Exists(filePath))
                 {
                     FileSize = new FileInfo(filePath).Length;
                 }

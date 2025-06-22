@@ -85,12 +85,12 @@ namespace RhinoCncSuite.ui
                     return;
                 }
 
-                _materialCatalogService = await RhinoCncPlugin.Instance.GetMaterialCatalogAsync();
-                
-                if (_materialCatalogService != null)
-                {
-                    _materialCatalogService.CatalogChanged += OnCatalogChanged;
-                    LoadProjectMaterials();
+            _materialCatalogService = await RhinoCncPlugin.Instance.GetMaterialCatalogAsync();
+            
+            if (_materialCatalogService != null)
+            {
+                _materialCatalogService.CatalogChanged += OnCatalogChanged;
+                LoadProjectMaterials();
                 }
             }
             catch (Exception ex)

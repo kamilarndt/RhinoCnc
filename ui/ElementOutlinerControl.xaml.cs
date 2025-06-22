@@ -62,14 +62,14 @@ namespace RhinoCncSuite.ui
                     return;
                 }
 
-                // Asynchronously get both services
-                _elementService = await RhinoCncPlugin.Instance.GetElementOutlinerAsync();
-                _materialCatalogService = await RhinoCncPlugin.Instance.GetMaterialCatalogAsync();
+            // Asynchronously get both services
+            _elementService = await RhinoCncPlugin.Instance.GetElementOutlinerAsync();
+            _materialCatalogService = await RhinoCncPlugin.Instance.GetMaterialCatalogAsync();
 
-                if (_elementService != null)
-                {
-                    _elementService.ElementsChanged += ElementService_ElementsChanged;
-                    LoadElements();
+            if (_elementService != null)
+            {
+                _elementService.ElementsChanged += ElementService_ElementsChanged;
+                LoadElements();
                 }
             }
             catch (Exception ex)
