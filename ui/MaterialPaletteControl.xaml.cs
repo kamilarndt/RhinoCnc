@@ -37,15 +37,17 @@ namespace RhinoCncSuite.ui
         {
             try
             {
-                InitializeComponent();
+                // Explicitly load the XAML using an absolute pack URI. This is the correct way to initialize
+                // a WPF control when it's hosted in an external application like Rhino.
+                var uri = new Uri("/RhinoCncSuite;component/ui/MaterialPaletteControl.xaml", UriKind.Relative);
+                System.Windows.Application.LoadComponent(this, uri);
+
                 ProjectMaterials = new ObservableCollection<CncMaterial>();
                 MaterialItemsControl.ItemsSource = ProjectMaterials;
                 MaterialsListView.ItemsSource = ProjectMaterials;
-            
                 this.DataContext = this;
 
-                // Defer service loading until the control is loaded
-                this.Loaded += UserControl_Loaded;
+                Loaded += UserControl_Loaded;
                 
                 // Set initial view mode state
                 UpdateViewMode();

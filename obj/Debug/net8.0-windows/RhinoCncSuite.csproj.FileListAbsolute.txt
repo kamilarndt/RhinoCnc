@@ -1,5 +1,5 @@
-D:\Programy\RhinoCnc\bin\Debug\net8.0-windows\RhinoCncSuite.deps.json
 D:\Programy\RhinoCnc\bin\Debug\net8.0-windows\RhinoCncSuite.dll
+D:\Programy\RhinoCnc\bin\Debug\net8.0-windows\RhinoCncSuite.deps.json
 D:\Programy\RhinoCnc\bin\Debug\net8.0-windows\RhinoCncSuite.pdb
 D:\Programy\RhinoCnc\bin\Debug\net8.0-windows\en-US\RhinoCncSuite.resources.dll
 D:\Programy\RhinoCnc\obj\Debug\net8.0-windows\RhinoCncSuite.csproj.AssemblyReference.cache

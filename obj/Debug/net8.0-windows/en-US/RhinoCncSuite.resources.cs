@@ -10,11 +10,14 @@
 using System;
 using System.Reflection;
 
-[assembly: System.Reflection.AssemblyCopyrightAttribute(" ")]
-[assembly: System.Reflection.AssemblyFileVersionAttribute("0.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("0.0.0.0")]
-[assembly: System.Reflection.AssemblyTitleAttribute(" ")]
-[assembly: System.Reflection.AssemblyVersionAttribute("0.0.0.0")]
+[assembly: System.Reflection.AssemblyCompanyAttribute("RhinoCNC Solutions")]
+[assembly: System.Reflection.AssemblyCopyrightAttribute("Copyright © 2025")]
+[assembly: System.Reflection.AssemblyDescriptionAttribute("Material Management and Element Organization for Rhino 8")]
+[assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0.0")]
+[assembly: System.Reflection.AssemblyProductAttribute("RhinoCNC Production Suite")]
+[assembly: System.Reflection.AssemblyTitleAttribute("RhinoCNC Production Suite")]
+[assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
 [assembly: System.Reflection.AssemblyCultureAttribute("en-US")]
 
 // Wygenerowane przez klasę WriteCodeFragment programu MSBuild.

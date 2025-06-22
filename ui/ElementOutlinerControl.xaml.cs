@@ -11,6 +11,7 @@ using RhinoCncSuite.Models;
 using RhinoCncSuite.Services;
 using Rhino.DocObjects;
 using System.Threading.Tasks;
+using System.Collections.ObjectModel;
 
 namespace RhinoCncSuite.ui
 {
@@ -23,6 +24,7 @@ namespace RhinoCncSuite.ui
         private MaterialCatalogService _materialCatalogService;
         private List<ElementInfo> _filteredElements;
         private ElementInfo _selectedElement;
+        public ObservableCollection<ElementInfo> Elements { get; private set; }
 
         /// <summary>
         /// Constructor
@@ -30,6 +32,7 @@ namespace RhinoCncSuite.ui
         public ElementOutlinerControl()
         {
             InitializeComponent();
+            
             _filteredElements = new List<ElementInfo>();
             
             // Defer service loading until the control is loaded
