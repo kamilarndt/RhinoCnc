@@ -1,0 +1,33 @@
+  Trwa okre┼Ťlanie projekt├│w do przywr├│cenia...
+  Wszystkie projekty s─ů aktualne na potrzeby przywr├│cenia.
+D:\Programy\RhinoCnc\src\UI\MaterialEditDialog.xaml.cs(39,21): error CS0103: Nazwa ÔÇ×ColorPickerÔÇŁ nie istnieje w bie┼╝─ůcym kontek┼Ťcie [D:\Programy\RhinoCnc\RhinoCncSuite_vc501zma_wpftmp.csproj]
+D:\Programy\RhinoCnc\src\UI\MaterialEditDialog.xaml.cs(41,21): error CS0103: Nazwa ÔÇ×ColorPickerÔÇŁ nie istnieje w bie┼╝─ůcym kontek┼Ťcie [D:\Programy\RhinoCnc\RhinoCncSuite_vc501zma_wpftmp.csproj]
+D:\Programy\RhinoCnc\src\RhinoCncPlugin.cs(74,13): error CS0103: Nazwa ÔÇ×ShowElementOutlinerCommandÔÇŁ nie istnieje w bie┼╝─ůcym kontek┼Ťcie [D:\Programy\RhinoCnc\RhinoCncSuite_vc501zma_wpftmp.csproj]
+D:\Programy\RhinoCnc\src\RhinoCncPlugin.cs(75,13): error CS0103: Nazwa ÔÇ×ShowMaterialPaletteCommandÔÇŁ nie istnieje w bie┼╝─ůcym kontek┼Ťcie [D:\Programy\RhinoCnc\RhinoCncSuite_vc501zma_wpftmp.csproj]
+D:\Programy\RhinoCnc\src\UI\MaterialEditDialog.xaml.cs(58,34): error CS0019: Nie mo┼╝na zastosowa─ç operatora ÔÇ×??ÔÇŁ do argument├│w operacji typu ÔÇ×doubleÔÇŁ lub ÔÇ×intÔÇŁ. [D:\Programy\RhinoCnc\RhinoCncSuite_vc501zma_wpftmp.csproj]
+D:\Programy\RhinoCnc\src\UI\MaterialEditDialog.xaml.cs(59,35): error CS0019: Nie mo┼╝na zastosowa─ç operatora ÔÇ×??ÔÇŁ do argument├│w operacji typu ÔÇ×doubleÔÇŁ lub ÔÇ×intÔÇŁ. [D:\Programy\RhinoCnc\RhinoCncSuite_vc501zma_wpftmp.csproj]
+D:\Programy\RhinoCnc\src\UI\MaterialSelectionDialog.xaml.cs(151,41): error CS1061: Element ÔÇ×MaterialCatalogServiceÔÇŁ nie zawiera definicji ÔÇ×AddOrUpdateMaterialÔÇŁ i nie odnaleziono dost─Öpnej metody rozszerzenia ÔÇ×AddOrUpdateMaterialÔÇŁ, kt├│ra przyjmuje pierwszy argument typu ÔÇ×MaterialCatalogServiceÔÇŁ (czy nie brakuje dyrektywy using lub odwo┼éania do zestawu?). [D:\Programy\RhinoCnc\RhinoCncSuite_vc501zma_wpftmp.csproj]
+D:\Programy\RhinoCnc\src\Services\ElementOutlinerService.cs(380,13): error CS0200: Nie mo┼╝na przypisa─ç warto┼Ťci do w┼éa┼Ťciwo┼Ťci lub indeksatora ÔÇ×ElementOutlinerService.ElementsÔÇŁ ÔÇô jest on tylko do odczytu [D:\Programy\RhinoCnc\RhinoCncSuite_vc501zma_wpftmp.csproj]
+D:\Programy\RhinoCnc\src\UI\MaterialPaletteControl.xaml.cs(523,37): error CS0246: Nie mo┼╝na znale┼║─ç nazwy typu lub przestrzeni nazw ÔÇ×Rectangle3dÔÇŁ (brak dyrektywy using lub odwo┼éania do zestawu?) [D:\Programy\RhinoCnc\RhinoCncSuite_vc501zma_wpftmp.csproj]
+D:\Programy\RhinoCnc\src\UI\MaterialPaletteControl.xaml.cs(523,49): error CS0103: Nazwa ÔÇ×PlaneÔÇŁ nie istnieje w bie┼╝─ůcym kontek┼Ťcie [D:\Programy\RhinoCnc\RhinoCncSuite_vc501zma_wpftmp.csproj]
+D:\Programy\RhinoCnc\src\UI\MaterialPaletteControl.xaml.cs(526,38): error CS0246: Nie mo┼╝na znale┼║─ç nazwy typu lub przestrzeni nazw ÔÇ×ObjectAttributesÔÇŁ (brak dyrektywy using lub odwo┼éania do zestawu?) [D:\Programy\RhinoCnc\RhinoCncSuite_vc501zma_wpftmp.csproj]
+D:\Programy\RhinoCnc\src\UI\MaterialEditDialog.xaml.cs(15,35): warning CS0649: Do pola ÔÇ×MaterialEditDialog._originalMaterialÔÇŁ nigdy nie jest przypisywana warto┼Ť─ç i b─Ödzie ono mie─ç zawsze warto┼Ť─ç domy┼Ťln─ů null [D:\Programy\RhinoCnc\RhinoCncSuite_vc501zma_wpftmp.csproj]
+
+Kompilacja NIE POWIOD┼üA SI─ś.
+
+D:\Programy\RhinoCnc\src\UI\MaterialEditDialog.xaml.cs(15,35): warning CS0649: Do pola ÔÇ×MaterialEditDialog._originalMaterialÔÇŁ nigdy nie jest przypisywana warto┼Ť─ç i b─Ödzie ono mie─ç zawsze warto┼Ť─ç domy┼Ťln─ů null [D:\Programy\RhinoCnc\RhinoCncSuite_vc501zma_wpftmp.csproj]
+D:\Programy\RhinoCnc\src\UI\MaterialEditDialog.xaml.cs(39,21): error CS0103: Nazwa ÔÇ×ColorPickerÔÇŁ nie istnieje w bie┼╝─ůcym kontek┼Ťcie [D:\Programy\RhinoCnc\RhinoCncSuite_vc501zma_wpftmp.csproj]
+D:\Programy\RhinoCnc\src\UI\MaterialEditDialog.xaml.cs(41,21): error CS0103: Nazwa ÔÇ×ColorPickerÔÇŁ nie istnieje w bie┼╝─ůcym kontek┼Ťcie [D:\Programy\RhinoCnc\RhinoCncSuite_vc501zma_wpftmp.csproj]
+D:\Programy\RhinoCnc\src\RhinoCncPlugin.cs(74,13): error CS0103: Nazwa ÔÇ×ShowElementOutlinerCommandÔÇŁ nie istnieje w bie┼╝─ůcym kontek┼Ťcie [D:\Programy\RhinoCnc\RhinoCncSuite_vc501zma_wpftmp.csproj]
+D:\Programy\RhinoCnc\src\RhinoCncPlugin.cs(75,13): error CS0103: Nazwa ÔÇ×ShowMaterialPaletteCommandÔÇŁ nie istnieje w bie┼╝─ůcym kontek┼Ťcie [D:\Programy\RhinoCnc\RhinoCncSuite_vc501zma_wpftmp.csproj]
+D:\Programy\RhinoCnc\src\UI\MaterialEditDialog.xaml.cs(58,34): error CS0019: Nie mo┼╝na zastosowa─ç operatora ÔÇ×??ÔÇŁ do argument├│w operacji typu ÔÇ×doubleÔÇŁ lub ÔÇ×intÔÇŁ. [D:\Programy\RhinoCnc\RhinoCncSuite_vc501zma_wpftmp.csproj]
+D:\Programy\RhinoCnc\src\UI\MaterialEditDialog.xaml.cs(59,35): error CS0019: Nie mo┼╝na zastosowa─ç operatora ÔÇ×??ÔÇŁ do argument├│w operacji typu ÔÇ×doubleÔÇŁ lub ÔÇ×intÔÇŁ. [D:\Programy\RhinoCnc\RhinoCncSuite_vc501zma_wpftmp.csproj]
+D:\Programy\RhinoCnc\src\UI\MaterialSelectionDialog.xaml.cs(151,41): error CS1061: Element ÔÇ×MaterialCatalogServiceÔÇŁ nie zawiera definicji ÔÇ×AddOrUpdateMaterialÔÇŁ i nie odnaleziono dost─Öpnej metody rozszerzenia ÔÇ×AddOrUpdateMaterialÔÇŁ, kt├│ra przyjmuje pierwszy argument typu ÔÇ×MaterialCatalogServiceÔÇŁ (czy nie brakuje dyrektywy using lub odwo┼éania do zestawu?). [D:\Programy\RhinoCnc\RhinoCncSuite_vc501zma_wpftmp.csproj]
+D:\Programy\RhinoCnc\src\Services\ElementOutlinerService.cs(380,13): error CS0200: Nie mo┼╝na przypisa─ç warto┼Ťci do w┼éa┼Ťciwo┼Ťci lub indeksatora ÔÇ×ElementOutlinerService.ElementsÔÇŁ ÔÇô jest on tylko do odczytu [D:\Programy\RhinoCnc\RhinoCncSuite_vc501zma_wpftmp.csproj]
+D:\Programy\RhinoCnc\src\UI\MaterialPaletteControl.xaml.cs(523,37): error CS0246: Nie mo┼╝na znale┼║─ç nazwy typu lub przestrzeni nazw ÔÇ×Rectangle3dÔÇŁ (brak dyrektywy using lub odwo┼éania do zestawu?) [D:\Programy\RhinoCnc\RhinoCncSuite_vc501zma_wpftmp.csproj]
+D:\Programy\RhinoCnc\src\UI\MaterialPaletteControl.xaml.cs(523,49): error CS0103: Nazwa ÔÇ×PlaneÔÇŁ nie istnieje w bie┼╝─ůcym kontek┼Ťcie [D:\Programy\RhinoCnc\RhinoCncSuite_vc501zma_wpftmp.csproj]
+D:\Programy\RhinoCnc\src\UI\MaterialPaletteControl.xaml.cs(526,38): error CS0246: Nie mo┼╝na znale┼║─ç nazwy typu lub przestrzeni nazw ÔÇ×ObjectAttributesÔÇŁ (brak dyrektywy using lub odwo┼éania do zestawu?) [D:\Programy\RhinoCnc\RhinoCncSuite_vc501zma_wpftmp.csproj]
+    Ostrze┼╝enia: 1
+    Liczba b┼é─Öd├│w: 11
+
+Czas, kt├│ry up┼éyn─ů┼é: 00:00:01.71

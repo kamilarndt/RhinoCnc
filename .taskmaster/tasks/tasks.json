@@ -1,0 +1,72 @@
+{
+    "master": {
+        "tasks": [
+            {
+                "id": 1,
+                "title": "Phase 0.A: Material Palette MVP - Backend Foundation",
+                "description": "Implement the core C# classes and data handling logic for the Global Material Catalog.",
+                "status": "completed",
+                "priority": "high",
+                "dependencies": [],
+                "subtasks": [],
+                "details": "Create the `Material` class in C#. Implement logic to read from and write to a `materials.json` file. Pre-populate this file with the material data provided.",
+                "testStrategy": "Verify that the `materials.json` file is created and can be deserialized into a list of Material objects correctly. Check that all fields match the provided material image."
+            },
+            {
+                "id": 2,
+                "title": "Phase 0.A: Material Palette MVP - UI Implementation",
+                "description": "Build the dockable WPF user interface for the Project Material Palette.",
+                "status": "pending",
+                "priority": "high",
+                "dependencies": [1],
+                "subtasks": [],
+                "details": "Create a new dockable panel in Rhino using WPF. The UI should display a list of materials for the project and have buttons for `[+] Add`, `[Assign]`, `[Select]`, `[Hide]`, `[Sheet]`, and `[Remove]`. The panel must be floatable and lockable.",
+                "testStrategy": "Launch the plugin in Rhino and verify the Material Palette panel appears and can be docked/floated. The UI should be responsive and visually clean."
+            },
+            {
+                "id": 3,
+                "title": "Phase 0.A: Material Palette MVP - Core Functionality",
+                "description": "Wire up the UI buttons to perform their core material management functions.",
+                "status": "pending",
+                "priority": "high",
+                "dependencies": [2],
+                "subtasks": [],
+                "details": "Implement the C# logic for the `Assign`, `Select`, and `Hide` buttons. `Assign` will write material data to the user attributes of selected Rhino objects. `Select` and `Hide` will find objects based on that data.",
+                "testStrategy": "Select an object, assign a material, and check its user attributes to confirm the data was saved. Test the Select and Hide buttons to ensure they correctly modify the selection/visibility of objects with that material."
+            },
+            {
+                "id": 4,
+                "title": "Phase 0.B: Element Outliner MVP - Backend Foundation",
+                "description": "Design and implement the data structure for attaching file paths to Rhino block instances.",
+                "status": "pending",
+                "priority": "medium",
+                "dependencies": [],
+                "subtasks": [],
+                "details": "Determine the best way to store a list of file paths as user data on a Rhino block definition. Implement the C# helper functions to add, retrieve, and remove these file paths.",
+                "testStrategy": "Create a block, programmatically attach several file paths to it, save and reopen the Rhino file, and verify that the file paths can be successfully retrieved from the block."
+            },
+            {
+                "id": 5,
+                "title": "Phase 0.B: Element Outliner MVP - UI Implementation",
+                "description": "Build the dockable WPF user interface for the Element Outliner.",
+                "status": "pending",
+                "priority": "medium",
+                "dependencies": [4],
+                "subtasks": [],
+                "details": "Create a second dockable panel using WPF. This panel will display a tree-view of all 'Elements' (blocks) in the document. It should include buttons for `[Create]`, `[Select]`, `[Hide/Show]`, and an interface for managing file attachments.",
+                "testStrategy": "Launch the plugin and verify both the Material Palette and Element Outliner panels can be open and managed independently. The outliner should populate with any blocks present in the document."
+            },
+            {
+                "id": 6,
+                "title": "Phase 0.B: Element Outliner MVP - Core Functionality",
+                "description": "Implement the core logic for creating and managing Elements and their attached files.",
+                "status": "pending",
+                "priority": "medium",
+                "dependencies": [5],
+                "subtasks": [],
+                "details": "Implement the C# logic for grouping objects into a new 'Element' (block). Wire up the UI to allow selecting, hiding, and renaming these elements. Implement the file dialog logic to allow users to select files to attach to an element.",
+                "testStrategy": "Select several objects, create an Element, and verify it appears in the outliner. Attach a PDF and a DXF file to it. Save, close, and reopen the project, and confirm the file attachments are still linked to the Element."
+            }
+        ]
+    }
+} 

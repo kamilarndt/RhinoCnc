@@ -1,0 +1,47 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <LangVersion>12.0</LangVersion>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>disable</Nullable>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <EnableDefaultPageItems>false</EnableDefaultPageItems>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <AssemblyTitle>RhinoCNC Production Suite</AssemblyTitle>
+    <AssemblyDescription>Material Management and Element Organization for Rhino 8</AssemblyDescription>
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="RhinoCommon" Version="8.19.25132.1001" />
+    <PackageReference Include="Grasshopper" Version="8.19.25132.1001" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+  </ItemGroup>
+
+    <ItemGroup>
+    <FrameworkReference Include="Microsoft.WindowsDesktop.App" />
+  </ItemGroup>
+
+
+
+  <ItemGroup>
+    <Page Include="ui\**\*.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Compile Include="ui\**\*.cs" />
+    <Compile Include="src\**\*.cs" />
+  </ItemGroup>
+
+  <!-- Custom target to run Rhino with plugin after successful build -->
+  <Target Name="RunRhino" AfterTargets="Build" Condition="'$(Configuration)' == 'Debug' And '$(RunRhinoAfterBuild)' == 'true'">
+    <Message Text="Starting Rhino with RhinoCNC plugin..." Importance="high" />
+    <Exec Command="powershell.exe -ExecutionPolicy Bypass -File &quot;$(MSBuildProjectDirectory)\scripts\run-rhino-with-plugin.ps1&quot; -Build:$false" 
+          ContinueOnError="true" 
+          IgnoreExitCode="true" />
+  </Target>
+
+</Project> 

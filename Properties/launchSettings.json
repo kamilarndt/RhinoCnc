@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "RhinoCncSuite": {
+      "commandName": "Project",
+      "workingDirectory": "C:\\Program Files\\Rhino 8"
+    }
+  }
+}
