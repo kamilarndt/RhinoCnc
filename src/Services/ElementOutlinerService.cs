@@ -9,13 +9,19 @@ using RhinoCncSuite.Models;
 namespace RhinoCncSuite.Services
 {
     /// <summary>
-    /// Service for providing element information for the outliner.
+    /// Service for providing element information for the outliner with optimized filtering and caching.
     /// </summary>
     public class ElementOutlinerService
     {
         private readonly string _filePath;
         private readonly MaterialCatalogService _materialCatalogService;
         public List<ElementInfo> Elements { get; private set; }
+
+        // Caching for improved performance
+        private ILookup<ElementType, ElementInfo> _typeCache;
+        private ILookup<ElementStatus, ElementInfo> _statusCache;
+        private ILookup<Guid?, ElementInfo> _materialCache;
+        private bool _cacheValid = false;
 
         /// <summary>
         /// Event fired when the elements collection changes
@@ -41,6 +47,33 @@ namespace RhinoCncSuite.Services
         public async Task InitializeAsync()
         {
             await LoadElementsAsync();
+            RebuildCache();
+        }
+
+        /// <summary>
+        /// Rebuilds the lookup caches for efficient filtering
+        /// </summary>
+        private void RebuildCache()
+        {
+            if (Elements?.Any() == true)
+            {
+                _typeCache = Elements.ToLookup(e => e.Type);
+                _statusCache = Elements.ToLookup(e => e.Status);
+                _materialCache = Elements.ToLookup(e => e.MaterialId);
+                _cacheValid = true;
+            }
+            else
+            {
+                _cacheValid = false;
+            }
+        }
+
+        /// <summary>
+        /// Invalidates the cache when elements change
+        /// </summary>
+        private void InvalidateCache()
+        {
+            _cacheValid = false;
         }
 
         /// <summary>
@@ -100,6 +133,7 @@ namespace RhinoCncSuite.Services
                 return false;
 
             Elements.Add(element);
+            InvalidateCache(); // Invalidate cache after modification
             await SaveElementsAsync();
             OnElementsChanged(new ElementChangedEventArgs(ElementChangeType.Added, element));
             return true;
@@ -119,6 +153,7 @@ namespace RhinoCncSuite.Services
                 return false;
 
             Elements.AddRange(newElements);
+            InvalidateCache(); // Invalidate cache after modification
             await SaveElementsAsync();
             // Fire a general "reloaded" event as multiple items were added
             OnElementsChanged(new ElementChangedEventArgs(ElementChangeType.CollectionReloaded, null));
@@ -139,6 +174,7 @@ namespace RhinoCncSuite.Services
 
             element.ModifiedDate = DateTime.Now;
             Elements[existingIndex] = element;
+            InvalidateCache(); // Invalidate cache after modification
             await SaveElementsAsync();
             OnElementsChanged(new ElementChangedEventArgs(ElementChangeType.Updated, element));
             return true;
@@ -155,6 +191,7 @@ namespace RhinoCncSuite.Services
             var removedElement = Elements.FirstOrDefault(e => e.Id == elementId);
             if (removedElement != null && Elements.Remove(removedElement))
             {
+                InvalidateCache(); // Invalidate cache after modification
                 await SaveElementsAsync();
                 OnElementsChanged(new ElementChangedEventArgs(ElementChangeType.Removed, removedElement));
                 return true;
@@ -205,34 +242,131 @@ namespace RhinoCncSuite.Services
         }
 
         /// <summary>
-        /// Gets elements by type
+        /// Gets elements by type using cached lookup for better performance
         /// </summary>
         /// <param name="type">Element type</param>
         /// <returns>List of elements of the specified type</returns>
         public List<ElementInfo> GetElementsByType(ElementType type)
         {
+            if (_cacheValid && _typeCache != null)
+            {
+                return _typeCache[type].ToList();
+            }
+            
+            // Fallback to direct LINQ if cache not available
             return Elements.Where(e => e.Type == type).ToList();
         }
 
         /// <summary>
-        /// Gets elements by status
+        /// Gets elements by status using cached lookup for better performance
         /// </summary>
         /// <param name="status">Element status</param>
         /// <returns>List of elements with the specified status</returns>
         public List<ElementInfo> GetElementsByStatus(ElementStatus status)
         {
+            if (_cacheValid && _statusCache != null)
+            {
+                return _statusCache[status].ToList();
+            }
+            
+            // Fallback to direct LINQ if cache not available
             return Elements.Where(e => e.Status == status).ToList();
         }
 
         /// <summary>
-        /// Gets elements by material
+        /// Gets elements by material using cached lookup for better performance
         /// </summary>
         /// <param name="materialId">Material ID</param>
         /// <returns>List of elements with the specified material</returns>
         public List<ElementInfo> GetElementsByMaterial(Guid? materialId)
         {
-            if (!materialId.HasValue || materialId.Value == Guid.Empty) return new List<ElementInfo>();
+            if (!materialId.HasValue || materialId.Value == Guid.Empty) 
+                return new List<ElementInfo>();
+                
+            if (_cacheValid && _materialCache != null)
+            {
+                return _materialCache[materialId].ToList();
+            }
+            
+            // Fallback to direct LINQ if cache not available
             return Elements.Where(e => e.MaterialId == materialId).ToList();
+        }
+
+        /// <summary>
+        /// Advanced filter with consolidated LINQ for better performance
+        /// </summary>
+        /// <param name="filters">Filter criteria</param>
+        /// <returns>Filtered elements</returns>
+        public List<ElementInfo> GetFilteredElements(ElementFilter filters)
+        {
+            if (filters == null)
+                return Elements.ToList();
+
+            var query = Elements.AsEnumerable();
+
+            // Apply all filters in a single LINQ expression for efficiency
+            if (filters.Types?.Any() == true)
+            {
+                var typeSet = new HashSet<ElementType>(filters.Types);
+                query = query.Where(e => typeSet.Contains(e.Type));
+            }
+
+            if (filters.Statuses?.Any() == true)
+            {
+                var statusSet = new HashSet<ElementStatus>(filters.Statuses);
+                query = query.Where(e => statusSet.Contains(e.Status));
+            }
+
+            if (filters.MaterialIds?.Any() == true)
+            {
+                var materialSet = new HashSet<Guid>(filters.MaterialIds);
+                query = query.Where(e => e.MaterialId.HasValue && materialSet.Contains(e.MaterialId.Value));
+            }
+
+            if (!string.IsNullOrWhiteSpace(filters.SearchTerm))
+            {
+                var searchTerm = filters.SearchTerm.ToLowerInvariant();
+                query = query.Where(e =>
+                    (e.Name?.ToLowerInvariant().Contains(searchTerm) == true) ||
+                    (e.Description?.ToLowerInvariant().Contains(searchTerm) == true) ||
+                    (e.Tags?.Any(tag => tag.ToLowerInvariant().Contains(searchTerm)) == true)
+                );
+            }
+
+            if (filters.CreatedAfter.HasValue)
+                query = query.Where(e => e.CreatedDate >= filters.CreatedAfter.Value);
+
+            if (filters.CreatedBefore.HasValue)
+                query = query.Where(e => e.CreatedDate <= filters.CreatedBefore.Value);
+
+            return query.ToList();
+        }
+
+        /// <summary>
+        /// Gets paginated elements for large collections
+        /// </summary>
+        /// <param name="pageIndex">Zero-based page index</param>
+        /// <param name="pageSize">Number of items per page</param>
+        /// <param name="filters">Optional filters</param>
+        /// <returns>Paginated result</returns>
+        public PagedResult<ElementInfo> GetPagedElements(int pageIndex, int pageSize, ElementFilter filters = null)
+        {
+            var allElements = filters != null ? GetFilteredElements(filters) : Elements;
+            var totalCount = allElements.Count;
+            
+            var pagedElements = allElements
+                .Skip(pageIndex * pageSize)
+                .Take(pageSize)
+                .ToList();
+
+            return new PagedResult<ElementInfo>
+            {
+                Items = pagedElements,
+                TotalCount = totalCount,
+                PageIndex = pageIndex,
+                PageSize = pageSize,
+                TotalPages = (int)Math.Ceiling((double)totalCount / pageSize)
+            };
         }
 
         /// <summary>
@@ -310,6 +444,62 @@ namespace RhinoCncSuite.Services
         {
             ElementsChanged?.Invoke(this, e);
         }
+
+        /// <summary>
+        /// Gets all elements asynchronously
+        /// </summary>
+        /// <returns>List of all elements</returns>
+        public async Task<List<ElementInfo>> GetElementsAsync()
+        {
+            return await Task.FromResult(Elements?.ToList() ?? new List<ElementInfo>());
+        }
+
+        /// <summary>
+        /// Gets filtered elements asynchronously with optimized performance
+        /// </summary>
+        /// <param name="searchText">Search term for name filtering</param>
+        /// <param name="status">Status filter</param>
+        /// <param name="priority">Priority filter</param>
+        /// <param name="includeCompleted">Whether to include completed elements</param>
+        /// <returns>Filtered list of elements</returns>
+        public async Task<List<ElementInfo>> GetFilteredElementsAsync(
+            string searchText = null, 
+            ElementStatus? status = null, 
+            ElementPriority? priority = null, 
+            bool includeCompleted = true)
+        {
+            return await Task.Run(() =>
+            {
+                var query = Elements?.AsEnumerable() ?? Enumerable.Empty<ElementInfo>();
+
+                // Apply search filter
+                if (!string.IsNullOrWhiteSpace(searchText))
+                {
+                    query = query.Where(e => e.Name?.Contains(searchText, StringComparison.OrdinalIgnoreCase) == true ||
+                                           e.Description?.Contains(searchText, StringComparison.OrdinalIgnoreCase) == true);
+                }
+
+                // Apply status filter
+                if (status.HasValue)
+                {
+                    query = query.Where(e => e.Status == status.Value);
+                }
+
+                // Apply priority filter  
+                if (priority.HasValue)
+                {
+                    query = query.Where(e => e.Priority == priority.Value);
+                }
+
+                // Apply completed filter
+                if (!includeCompleted)
+                {
+                    query = query.Where(e => e.Status != ElementStatus.Completed);
+                }
+
+                return query.ToList();
+            });
+        }
     }
 
     /// <summary>
@@ -336,5 +526,33 @@ namespace RhinoCncSuite.Services
         Updated,
         Removed,
         CollectionReloaded
+    }
+
+    /// <summary>
+    /// Filter criteria for element queries
+    /// </summary>
+    public class ElementFilter
+    {
+        public List<ElementType> Types { get; set; }
+        public List<ElementStatus> Statuses { get; set; }
+        public List<Guid> MaterialIds { get; set; }
+        public string SearchTerm { get; set; }
+        public DateTime? CreatedAfter { get; set; }
+        public DateTime? CreatedBefore { get; set; }
+    }
+
+    /// <summary>
+    /// Paginated result container for large collections
+    /// </summary>
+    /// <typeparam name="T">Type of items in the collection</typeparam>
+    public class PagedResult<T>
+    {
+        public List<T> Items { get; set; } = new List<T>();
+        public int TotalCount { get; set; }
+        public int PageIndex { get; set; }
+        public int PageSize { get; set; }
+        public int TotalPages { get; set; }
+        public bool HasPreviousPage => PageIndex > 0;
+        public bool HasNextPage => PageIndex < TotalPages - 1;
     }
 } 

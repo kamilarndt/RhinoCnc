@@ -1,5 +1,5 @@
-D:\Programy\RhinoCnc\bin\Debug\net8.0-windows\RhinoCncSuite.dll
 D:\Programy\RhinoCnc\bin\Debug\net8.0-windows\RhinoCncSuite.deps.json
+D:\Programy\RhinoCnc\bin\Debug\net8.0-windows\RhinoCncSuite.dll
 D:\Programy\RhinoCnc\bin\Debug\net8.0-windows\RhinoCncSuite.pdb
 D:\Programy\RhinoCnc\bin\Debug\net8.0-windows\en-US\RhinoCncSuite.resources.dll
 D:\Programy\RhinoCnc\obj\Debug\net8.0-windows\RhinoCncSuite.csproj.AssemblyReference.cache
@@ -8,15 +8,11 @@ D:\Programy\RhinoCnc\obj\Debug\net8.0-windows\ui\MaterialEditDialog.baml
 D:\Programy\RhinoCnc\obj\Debug\net8.0-windows\ui\MaterialSelectionDialog.baml
 D:\Programy\RhinoCnc\obj\Debug\net8.0-windows\ui\ElementOutlinerControl.g.cs
 D:\Programy\RhinoCnc\obj\Debug\net8.0-windows\ui\MaterialEditDialog.g.cs
-D:\Programy\RhinoCnc\obj\Debug\net8.0-windows\ui\MaterialPaletteControl.g.cs
 D:\Programy\RhinoCnc\obj\Debug\net8.0-windows\ui\MaterialSelectionDialog.g.cs
-D:\Programy\RhinoCnc\obj\Debug\net8.0-windows\GeneratedInternalTypeHelper.g.cs
 D:\Programy\RhinoCnc\obj\Debug\net8.0-windows\RhinoCncSuite_MarkupCompile.cache
-D:\Programy\RhinoCnc\obj\Debug\net8.0-windows\RhinoCncSuite_MarkupCompile.lref
 D:\Programy\RhinoCnc\obj\Debug\net8.0-windows\RhinoCncSuite.GeneratedMSBuildEditorConfig.editorconfig
 D:\Programy\RhinoCnc\obj\Debug\net8.0-windows\RhinoCncSuite.csproj.CoreCompileInputs.cache
 D:\Programy\RhinoCnc\obj\Debug\net8.0-windows\RhinoCncSuite.sourcelink.json
-D:\Programy\RhinoCnc\obj\Debug\net8.0-windows\ui\MaterialPaletteControl.baml
 D:\Programy\RhinoCnc\obj\Debug\net8.0-windows\RhinoCncSuite.g.en-US.resources
 D:\Programy\RhinoCnc\obj\Debug\net8.0-windows\en-US\RhinoCncSuite.resources.cs
 D:\Programy\RhinoCnc\obj\Debug\net8.0-windows\en-US\RhinoCncSuite.resources.dll
@@ -24,3 +20,4 @@ D:\Programy\RhinoCnc\obj\Debug\net8.0-windows\RhinoCncSuite.dll
 D:\Programy\RhinoCnc\obj\Debug\net8.0-windows\refint\RhinoCncSuite.dll
 D:\Programy\RhinoCnc\obj\Debug\net8.0-windows\RhinoCncSuite.pdb
 D:\Programy\RhinoCnc\obj\Debug\net8.0-windows\ref\RhinoCncSuite.dll
+D:\Programy\RhinoCnc\bin\Debug\net8.0-windows\data\materials.json

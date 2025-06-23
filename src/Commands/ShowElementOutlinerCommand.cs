@@ -32,13 +32,13 @@ namespace RhinoCncSuite.Commands
         {
             try
             {
-                var panelId = typeof(ElementOutlinerPanelHost).GUID;
+                var panelId = typeof(ElementOutlinerPanel).GUID;
                 var isVisible = Panels.IsPanelVisible(panelId);
 
                 if (isVisible)
                 {
                     // Show the Element Outliner panel
-                    Panels.OpenPanel(typeof(ElementOutlinerPanelHost).GUID);
+                    Panels.OpenPanel(typeof(ElementOutlinerPanel).GUID);
                     RhinoApp.WriteLine("RhinoCNC: Element Outliner panel opened.");
                     return Result.Success;
                 }

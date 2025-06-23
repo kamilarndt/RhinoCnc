@@ -68,10 +68,10 @@ namespace RhinoCncSuite
                 return LoadReturnCode.Success;
             }
             catch (System.Exception e)
-                {
+            {
                 errorMessage = e.Message;
                 RhinoApp.WriteLine($"RhinoCNC: CRITICAL LOAD FAILURE: {e.Message}");
-                    return LoadReturnCode.ErrorShowDialog;
+                return LoadReturnCode.ErrorShowDialog;
             }
         }
 
@@ -80,17 +80,17 @@ namespace RhinoCncSuite
         /// </summary>
         private async Task InitializeServicesAndPanelsAsync()
         {
-                try
-                {
+            try
+            {
                 await InitializeServicesAsync();
                 
                 // Register panels only after services are ready
                 await InitializePanelsAsync();
                 
                 RhinoApp.WriteLine("RhinoCNC: All services and panels initialized successfully.");
-                }
+            }
             catch (Exception ex)
-                {
+            {
                 // Log the error
                 RhinoApp.WriteLine($"RhinoCNC: Critical initialization error: {ex.Message}");
                 RhinoApp.WriteLine($"RhinoCNC: Stack trace: {ex.StackTrace}");
@@ -145,7 +145,7 @@ namespace RhinoCncSuite
                 // Wait for both services to complete
                 MaterialCatalog = await materialTask;
                 ElementOutliner = await elementTask;
-
+                
                 RhinoApp.WriteLine("RhinoCNC: All services initialized successfully.");
             }
             catch (Exception e)
@@ -155,7 +155,7 @@ namespace RhinoCncSuite
                 
                 // Ensure we have at least basic services even if initialization fails
                 if (MaterialCatalog == null)
-            {
+                {
                     try
                     {
                         var dataDir = GetDataDirectory();

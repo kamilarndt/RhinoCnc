@@ -67,9 +67,10 @@ namespace RhinoCncSuite.Models
         public double Density { get; set; }
 
         /// <summary>
-        /// Color of the material (optional)
+        /// Color of the material (optional) - DEPRECATED: Use ColorHex instead
         /// </summary>
         [JsonProperty("color")]
+        [Obsolete("Use ColorHex property instead")]
         public string Color { get; set; }
 
         /// <summary>
@@ -125,6 +126,12 @@ namespace RhinoCncSuite.Models
         /// </summary>
         [JsonIgnore]
         public string Dimensions => $"{Width}x{Length}";
+
+        /// <summary>
+        /// Gets the formatted dimensions display with units
+        /// </summary>
+        [JsonIgnore]
+        public string DisplayDimensions => $"{Width}×{Length}mm";
 
         /// <summary>
         /// Default constructor

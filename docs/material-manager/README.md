@@ -8,6 +8,8 @@ Material Manager to komponent systemu RhinoCNC Suite odpowiedzialny za zarządza
 ### 📋 Dokumenty Główne
 - `material_manager_prd.md` - Product Requirements Document
 - `technical_architecture.md` - Architektura techniczna
+- `development_guide.md` - Guide dla developerów
+- `testing_strategy.md` - Strategia testowania
 - `user_workflows.md` - Przepływy użytkownika
 - `api_specification.md` - Specyfikacja API
 
@@ -18,7 +20,7 @@ Zadania są zorganizowane w epiki według priorytetów:
 - **Epic 1: Core Infrastructure** - Podstawowa infrastruktura
 - **Epic 2: Data Models** - Modele danych
 
-#### 🟠 Wysokie (High)  
+#### 🟠 Wysokie (High)
 - **Epic 3: Material Palette UI** - Interfejs palety materiałów
 - **Epic 4: Rhino Integration** - Integracja z Rhino
 
@@ -36,9 +38,11 @@ Zadania są zorganizowane w epiki według priorytetów:
 
 ## Rozpoczęcie Pracy
 1. Zapoznaj się z PRD (`material_manager_prd.md`)
-2. Przejrzyj architekturę techniczną
-3. Rozpocznij od zadań Epic 1 (Core Infrastructure)
-4. Postępuj zgodnie z priorytetami i zależnościami
+2. Przejrzyj architekturę techniczną (`technical_architecture.md`)
+3. Przeczytaj development guide (`development_guide.md`)
+4. Zapoznaj się ze strategią testowania (`testing_strategy.md`)
+5. Rozpocznij od zadań Epic 1 (Core Infrastructure)
+6. Postępuj zgodnie z priorytetami i zależnościami
 
 ## Kontakt
 Projekt: RhinoCNC Suite - Material Manager

@@ -3,5 +3,8 @@
   "version": "1.0.0",
   "description": "A production and organization plugin for Rhino 8, including a Material Palette and Element Outliner.",
   "author": "",
-  "license": "ISC"
-} 
+  "license": "ISC",
+  "devDependencies": {
+    "task-master-ai": "^0.18.0"
+  }
+}

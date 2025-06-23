@@ -38,7 +38,7 @@ namespace RhinoCncSuite.ui
             LengthTextBox.Text = EditedMaterial.Length.ToString(CultureInfo.InvariantCulture);
             DensityTextBox.Text = EditedMaterial.Density.ToString(CultureInfo.InvariantCulture);
             PriceTextBox.Text = EditedMaterial.PricePerSquareMeter.ToString("F2", CultureInfo.InvariantCulture);
-            ColorTextBox.Text = EditedMaterial.Color ?? "#888888";
+            ColorTextBox.Text = EditedMaterial.ColorHex ?? "#888888";
             
             UpdateColorPreview();
         }
@@ -87,7 +87,7 @@ namespace RhinoCncSuite.ui
                 EditedMaterial.Length = double.Parse(LengthTextBox.Text, CultureInfo.InvariantCulture);
                 EditedMaterial.Density = double.Parse(DensityTextBox.Text, CultureInfo.InvariantCulture);
                 EditedMaterial.PricePerSquareMeter = double.Parse(PriceTextBox.Text, CultureInfo.InvariantCulture);
-                EditedMaterial.Color = ColorTextBox.Text.StartsWith("#") ? ColorTextBox.Text : "#" + ColorTextBox.Text;
+                EditedMaterial.ColorHex = ColorTextBox.Text.StartsWith("#") ? ColorTextBox.Text : "#" + ColorTextBox.Text;
 
                 DialogResult = true;
                 Close();

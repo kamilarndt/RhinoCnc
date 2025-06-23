@@ -4,17 +4,17 @@
 library
 C#
 .cs
-D:\Programy\RhinoCnc\obj\Debug\net8.0-windows\
+d:\Programy\RhinoCnc\obj\Debug\net8.0-windows\
 RhinoCncSuite
 none
 false
-TRACE;DEBUG;NET;NET8_0;NETCOREAPP
+TRACE;DEBUG;NET;NET8_0;NETCOREAPP;WINDOWS;WINDOWS7_0;NET5_0_OR_GREATER;NET6_0_OR_GREATER;NET7_0_OR_GREATER;NET8_0_OR_GREATER;NETCOREAPP3_0_OR_GREATER;NETCOREAPP3_1_OR_GREATER;WINDOWS7_0_OR_GREATER
 
-41702993760
+3-1011836094
 
-19-1154218502
+281093941040
 214-1402107323
-ui\\ElementOutlinerControl.xaml;ui\\MaterialEditDialog.xaml;ui\\MaterialPaletteControl.xaml;ui\\MaterialSelectionDialog.xaml;
+ui\\ElementOutlinerControl.xaml;ui\\MaterialEditDialog.xaml;ui\\MaterialSelectionDialog.xaml;
 
 False
 

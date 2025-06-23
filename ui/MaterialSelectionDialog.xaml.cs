@@ -90,9 +90,9 @@ namespace RhinoCncSuite.ui
                 var representativeMaterial = _allMaterials.First(m => GetBaseCategoryName(m.DisplayName) == catName);
                 Brush background = Brushes.DarkGray;
 
-                if (!string.IsNullOrEmpty(representativeMaterial.Color))
+                if (!string.IsNullOrEmpty(representativeMaterial.ColorHex))
                 {
-                    try { background = (Brush)colorConverter.ConvertFromString(representativeMaterial.Color); } catch { }
+                    try { background = (Brush)colorConverter.ConvertFromString(representativeMaterial.ColorHex); } catch { }
                 }
                 categoryViewModels.Add(new CategoryViewModel { Name = catName, Background = background });
             }
@@ -138,7 +138,7 @@ namespace RhinoCncSuite.ui
             var editDialog = new MaterialEditDialog(new Material 
             {
                 Name = "New Material",
-                Color = "#CCCCCC",
+                ColorHex = "#CCCCCC",
                 Width = 2800,
                 Length = 2070,
                 Thickness = 18,
