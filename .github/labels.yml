@@ -1,0 +1,74 @@
+# RhinoAI Production Suite - GitHub Labels Configuration
+
+# Epic and Feature Labels
+- name: "epic"
+  color: "8B5CF6"
+  description: "Large feature or capability spanning multiple tasks"
+
+- name: "feature" 
+  color: "10B981"
+  description: "New feature implementation"
+
+- name: "task"
+  color: "3B82F6" 
+  description: "Individual task within an epic"
+
+# Component Labels
+- name: "material-manager"
+  color: "F59E0B"
+  description: "Material Manager component"
+
+- name: "element-outliner"
+  color: "8B5CF6"
+  description: "Element Outliner component"
+
+- name: "cnc-automation"
+  color: "EF4444"
+  description: "CNC Automation Engine component"
+
+- name: "local-ai"
+  color: "06B6D4"
+  description: "Local AI Models component"
+
+# Priority Labels
+- name: "priority:critical"
+  color: "DC2626"
+  description: "Critical priority - blocking other work"
+
+- name: "priority:high"
+  color: "EA580C"
+  description: "High priority - important for current milestone"
+
+- name: "priority:medium"
+  color: "CA8A04"
+  description: "Medium priority - normal development flow"
+
+- name: "priority:low"
+  color: "65A30D"
+  description: "Low priority - nice to have"
+
+# Type Labels
+- name: "bug"
+  color: "DC2626"
+  description: "Something isn't working"
+
+- name: "enhancement"
+  color: "10B981"
+  description: "New feature or request"
+
+- name: "documentation"
+  color: "3B82F6"
+  description: "Improvements or additions to documentation"
+
+# Technology Labels
+- name: "dotnet-8"
+  color: "512DA8"
+  description: ".NET 8.0 related"
+
+- name: "wpf"
+  color: "512DA8"
+  description: "WPF UI related"
+
+- name: "rhino-api"
+  color: "FF9800"
+  description: "Rhino 3D API integration"

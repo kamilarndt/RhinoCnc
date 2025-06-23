@@ -1,0 +1,281 @@
+name: RhinoAI Production Suite CI/CD
+
+on:
+  push:
+    branches: [ main, develop, 'feature/*', 'release/*' ]
+  pull_request:
+    branches: [ main, develop ]
+  release:
+    types: [published]
+
+env:
+  DOTNET_VERSION: '8.0.x'
+  RHINO_VERSION: '8.20'
+  SOLUTION_FILE: 'RhinoCncSuite.sln'
+  PROJECT_FILE: 'RhinoCncSuite.csproj'
+
+jobs:
+  build-and-test:
+    name: 🏗️ Build & Test
+    runs-on: windows-latest
+    
+    strategy:
+      matrix:
+        configuration: [Debug, Release]
+    
+    steps:
+    - name: 📥 Checkout Code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: 🔧 Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+
+    - name: 📦 Restore NuGet Packages
+      run: dotnet restore ${{ env.PROJECT_FILE }}
+
+    - name: 🏗️ Build Solution
+      run: dotnet build ${{ env.PROJECT_FILE }} --configuration ${{ matrix.configuration }} --no-restore --verbosity minimal
+
+    - name: 🧪 Run Unit Tests
+      run: dotnet test ${{ env.PROJECT_FILE }} --configuration ${{ matrix.configuration }} --no-build --verbosity minimal --logger trx --results-directory TestResults
+
+    - name: 📊 Upload Test Results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: test-results-${{ matrix.configuration }}
+        path: TestResults/*.trx
+
+    - name: 📦 Upload Build Artifacts
+      uses: actions/upload-artifact@v4
+      if: matrix.configuration == 'Release'
+      with:
+        name: rhino-plugin-${{ github.sha }}
+        path: |
+          bin/Release/**/*.rhp
+          bin/Release/**/*.dll
+          bin/Release/**/*.pdb
+
+  code-quality:
+    name: 🔍 Code Quality
+    runs-on: windows-latest
+    needs: build-and-test
+    
+    steps:
+    - name: 📥 Checkout Code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: 🔧 Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+
+    - name: 🔍 Code Analysis
+      run: |
+        dotnet build ${{ env.PROJECT_FILE }} --configuration Release --verbosity minimal
+        # Dodatkowe narzędzia analizy kodu można dodać tutaj
+
+    - name: 📊 Test Coverage Report
+      run: |
+        dotnet test ${{ env.PROJECT_FILE }} --configuration Release --collect:"XPlat Code Coverage" --results-directory coverage
+        # Generowanie raportu coverage
+
+  security-scan:
+    name: 🔒 Security Scan
+    runs-on: windows-latest
+    needs: build-and-test
+    
+    steps:
+    - name: 📥 Checkout Code
+      uses: actions/checkout@v4
+
+    - name: 🔧 Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+
+    - name: 🔒 Security Scan
+      run: |
+        # Instalacja i uruchomienie security-scan tools
+        dotnet list package --vulnerable --include-transitive
+        dotnet list package --deprecated
+
+  component-tests:
+    name: 🧩 Component Tests
+    runs-on: windows-latest
+    needs: build-and-test
+    
+    strategy:
+      matrix:
+        component: [MaterialManager, ElementOutliner]
+    
+    steps:
+    - name: 📥 Checkout Code
+      uses: actions/checkout@v4
+
+    - name: 🔧 Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+
+    - name: 🧩 Test ${{ matrix.component }} Component
+      run: |
+        echo "Testing ${{ matrix.component }} component"
+        dotnet test ${{ env.PROJECT_FILE }} --filter "Category=${{ matrix.component }}" --configuration Release --no-build
+
+  documentation:
+    name: 📚 Documentation Check
+    runs-on: windows-latest
+    
+    steps:
+    - name: 📥 Checkout Code
+      uses: actions/checkout@v4
+
+    - name: 📚 Check Documentation
+      run: |
+        # Sprawdzenie czy wszystkie pliki dokumentacji istnieją
+        $requiredDocs = @(
+          "docs/material-manager/README.md",
+          "docs/material-manager/material_manager_prd.md",
+          "docs/material-manager/technical_architecture.md",
+          "docs/material-manager/development_guide.md",
+          "docs/material-manager/testing_strategy.md"
+        )
+        
+        foreach ($doc in $requiredDocs) {
+          if (-not (Test-Path $doc)) {
+            Write-Error "Missing documentation: $doc"
+            exit 1
+          }
+        }
+        
+        Write-Host "✅ All required documentation files present"
+
+    - name: 📝 Validate Epic Documentation
+      run: |
+        # Sprawdzenie struktury epic documentation
+        $epicFolders = Get-ChildItem "docs/material-manager/tasks" -Directory
+        
+        foreach ($epic in $epicFolders) {
+          $readmePath = Join-Path $epic.FullName "README.md"
+          if (-not (Test-Path $readmePath)) {
+            Write-Error "Missing README.md in $($epic.Name)"
+            exit 1
+          }
+        }
+        
+        Write-Host "✅ All Epic documentation properly structured"
+
+  plugin-validation:
+    name: 🔌 Plugin Validation
+    runs-on: windows-latest
+    needs: build-and-test
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
+    
+    steps:
+    - name: 📥 Checkout Code
+      uses: actions/checkout@v4
+
+    - name: 🔧 Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+
+    - name: 🏗️ Build Release Plugin
+      run: dotnet build ${{ env.PROJECT_FILE }} --configuration Release
+
+    - name: 🔌 Validate Plugin Structure
+      run: |
+        # Sprawdzenie czy plugin ma odpowiednią strukturę
+        $pluginFile = Get-ChildItem "bin/Release" -Filter "*.rhp" -Recurse | Select-Object -First 1
+        
+        if (-not $pluginFile) {
+          Write-Error "No .rhp plugin file found in build output"
+          exit 1
+        }
+        
+        Write-Host "✅ Plugin file found: $($pluginFile.Name)"
+        
+        # Sprawdzenie czy wszystkie wymagane DLL są obecne
+        $requiredDlls = @("RhinoCncSuite.dll")
+        
+        foreach ($dll in $requiredDlls) {
+          $dllPath = Get-ChildItem "bin/Release" -Filter $dll -Recurse
+          if (-not $dllPath) {
+            Write-Error "Missing required DLL: $dll"
+            exit 1
+          }
+        }
+        
+        Write-Host "✅ All required DLLs present"
+
+  release:
+    name: 🚀 Release
+    runs-on: windows-latest
+    needs: [build-and-test, code-quality, security-scan, component-tests, plugin-validation]
+    if: github.event_name == 'release'
+    
+    steps:
+    - name: 📥 Checkout Code
+      uses: actions/checkout@v4
+
+    - name: 🔧 Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+
+    - name: 🏗️ Build Release
+      run: dotnet build ${{ env.PROJECT_FILE }} --configuration Release
+
+    - name: 📦 Package Plugin
+      run: |
+        # Tworzenie pakietu release
+        $version = "${{ github.event.release.tag_name }}"
+        $packageName = "RhinoAI-Production-Suite-$version"
+        
+        # Kopiowanie plików do folderu pakietu
+        New-Item -ItemType Directory -Path "release" -Force
+        Copy-Item "bin/Release/**/*.rhp" "release/" -Recurse
+        Copy-Item "bin/Release/**/*.dll" "release/" -Recurse
+        Copy-Item "README.md" "release/"
+        Copy-Item "docs/" "release/docs/" -Recurse
+        
+        # Kompresja pakietu
+        Compress-Archive -Path "release/*" -DestinationPath "$packageName.zip"
+
+    - name: 🚀 Upload Release Asset
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ github.event.release.upload_url }}
+        asset_path: RhinoAI-Production-Suite-${{ github.event.release.tag_name }}.zip
+        asset_name: RhinoAI-Production-Suite-${{ github.event.release.tag_name }}.zip
+        asset_content_type: application/zip
+
+  notify:
+    name: 📢 Notifications
+    runs-on: windows-latest
+    needs: [build-and-test, code-quality, security-scan]
+    if: always()
+    
+    steps:
+    - name: 📢 Notify Status
+      run: |
+        $status = "${{ needs.build-and-test.result }}"
+        $component = "RhinoAI Production Suite"
+        $branch = "${{ github.ref_name }}"
+        
+        if ($status -eq "success") {
+          Write-Host "✅ $component build successful on $branch"
+        } else {
+          Write-Host "❌ $component build failed on $branch"
+        }
+        
+        # Tutaj można dodać integrację z Slack, Teams, itp. 

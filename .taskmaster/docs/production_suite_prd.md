@@ -1,90 +1,158 @@
-# Rhino Production Suite - Product Requirements Document (PRD)
+## 9. Szczegóły Implementacji
 
-## 1. Vision & Overview
+### 9.1. Paleta Materiałów - Architektura
 
-To create a comprehensive production and organization plugin for Rhino 8 on Windows. This suite will streamline the workflow for CNC manufacturing by providing two core, integrated tools: a **Material Management Palette** and an **Element Organization Outliner**. The ultimate goal is to create a robust data foundation that a future AI-powered CNC automation engine (`RhinoAI`) can leverage.
+#### 9.1.1. Modele
+* `Material.cs` - Podstawowa klasa modelu reprezentująca materiał
+* `MaterialCollection.cs` - Kolekcja materiałów z funkcjami filtrowania i sortowania
+* `MaterialFilter.cs` - Klasa pomocnicza do zaawansowanego filtrowania materiałów
+
+#### 9.1.2. ViewModele
+* `MaterialPaletteViewModel.cs` - Główny ViewModel dla panelu palety materiałów
+* `MaterialTileViewModel.cs` - ViewModel dla pojedynczego kafelka materiału
+* `MaterialCatalogViewModel.cs` - ViewModel dla okna dialogowego katalogu materiałów
+* `MaterialEditorViewModel.cs` - ViewModel dla okna dialogowego edycji materiału
+
+#### 9.1.3. Widoki
+* `MaterialPaletteView.cs` - Główny widok panelu palety materiałów
+* `MaterialTileView.cs` - Widok pojedynczego kafelka materiału
+* `MaterialListItemView.cs` - Widok pojedynczego elementu w trybie listy
+* `MaterialCatalogDialog.cs` - Okno dialogowe katalogu materiałów
+* `MaterialEditorDialog.cs` - Okno dialogowe edycji materiału
+
+#### 9.1.4. Serwisy
+* `MaterialCatalogService.cs` - Serwis odpowiedzialny za zarządzanie globalnym katalogiem materiałów
+* `MaterialAssignmentService.cs` - Serwis odpowiedzialny za przypisywanie materiałów do obiektów Rhino
+* `MaterialPersistenceService.cs` - Serwis odpowiedzialny za zapisywanie i odczytywanie danych materiałów
+
+### 9.2. Element Outliner - Architektura
+
+#### 9.2.1. Modele
+* `Element.cs` - Podstawowa klasa modelu reprezentująca element (blok)
+* `ElementCollection.cs` - Kolekcja elementów z funkcjami filtrowania i hierarchii
+* `DocumentAttachment.cs` - Model reprezentujący załączony dokument
+
+#### 9.2.2. ViewModele
+* `ElementOutlinerViewModel.cs` - Główny ViewModel dla panelu outlinera
+* `ElementTreeViewModel.cs` - ViewModel dla drzewa elementów
+* `ElementEditViewModel.cs` - ViewModel dla trybu edycji in-place
+* `BatchOperationsViewModel.cs` - ViewModel dla operacji wsadowych
+
+#### 9.2.3. Widoki
+* `ElementOutlinerView.cs` - Główny widok panelu outlinera
+* `ElementTreeView.cs` - Widok drzewa elementów
+* `ElementGridView.cs` - Alternatywny widok siatki dla elementów
+* `ElementEditPanel.cs` - Panel trybu edycji in-place
+* `BatchOperationsDialog.cs` - Okno dialogowe operacji wsadowych
+
+#### 9.2.4. Serwisy
+* `ElementManagerService.cs` - Serwis odpowiedzialny za zarządzanie elementami
+* `ElementEditService.cs` - Serwis odpowiedzialny za edycję in-place
+* `DocumentationService.cs` - Serwis odpowiedzialny za zarządzanie dokumentacją
+* `PreviewGeneratorService.cs` - Serwis odpowiedzialny za generowanie podglądów
+
+## 10. Strategie Testowania
+
+### 10.1. Testy Jednostkowe
+* Testy modeli i logiki biznesowej
+* Testy serializacji i deserializacji JSON
+* Testy konwersji typów i formatowania
+
+### 10.2. Testy Integracyjne
+* Testy integracji z API Rhino
+* Testy synchronizacji danych między komponentami
+* Testy persystencji danych
+
+### 10.3. Testy UI
+* Testy responsywności UI
+* Testy poprawności wiązania danych (data binding)
+* Testy dostępności UI (keyboard navigation)
+
+### 10.4. Testy Wydajnościowe
+* Testy obciążeniowe z dużą liczbą materiałów i elementów
+* Testy czasu ładowania i inicjalizacji
+* Profilowanie zużycia pamięci
+
+### 10.5. Testy Użyteczności
+* Testy z udziałem użytkowników końcowych
+* Analiza ścieżek zadań (task flows)
+* Ocena intuicyjności interfejsu
+
+## 11. Analiza Ryzyka
+
+### 11.1. Ryzyka Techniczne
+* **Integracja z Rhino API** - Niektóre funkcjonalności mogą być ograniczone przez możliwości API Rhino
+  * *Mitygacja*: Wczesne prototypowanie kluczowych funkcji, konsultacje z dokumentacją Rhino
+* **Wydajność przy dużych zestawach danych** - Problemy z wydajnością przy setkach elementów
+  * *Mitygacja*: Implementacja wirtualizacji UI, leniwego ładowania, efektywnych struktur danych
+
+### 11.2. Ryzyka Projektowe
+* **Złożoność UI** - Ryzyko stworzenia zbyt skomplikowanego interfejsu
+  * *Mitygacja*: Iteracyjne testowanie z użytkownikami, priorytetyzacja prostoty
+* **Rozszerzalność** - Trudności w przyszłej integracji z RhinoAI
+  * *Mitygacja*: Projektowanie z myślą o rozszerzalności, abstrakcja interfejsów
+
+### 11.3. Ryzyka Biznesowe
+* **Kompatybilność z przyszłymi wersjami Rhino** - Zmiany w Rhino mogą wymagać znaczących aktualizacji
+  * *Mitygacja*: Modułowa architektura, izolacja zależności od API Rhino
+* **Oczekiwania użytkowników** - Rozbieżność między oczekiwaniami a dostarczonym produktem
+  * *Mitygacja*: Częste demonstracje, feedback od użytkowników, iteracyjny rozwój
+
+## 12. Załączniki
+
+### 12.1. Schematy UI
+* Projekt interfejsu Palety Materiałów:
+  * Widok kafelkowy - makieta wizualna
+  * Widok listy - makieta wizualna
+  * Okno edycji materiału - makieta wizualna
+* Projekt interfejsu Element Outlinera:
+  * Widok drzewa - makieta wizualna
+  * Widok siatki - makieta wizualna
+  * Panel edycji in-place - makieta wizualna
+  * Interfejs podglądu - makieta wizualna
+
+### 12.2. Diagramy Techniczne
+* Diagram architektury systemu
+* Diagram przepływu danych
+* Diagram klas dla kluczowych komponentów
+* Diagram przepływu pracy użytkownika
+
+### 12.3. Przykładowe Dane
+* Przykładowa biblioteka materiałów (JSON)
+* Przykładowe struktury elementów
+* Przykładowe metadane dokumentacji
+
+### 12.4. Dokumentacja Techniczna
+* Specyfikacja API dla integracji z RhinoAI
+* Dokumentacja schematów danych
+* Wytyczne implementacyjne dla programistów
+
+## 13. Słownik Terminów
+
+* **Element** - Specjalizowany blok Rhino z metadanymi dla produkcji CNC
+* **Materiał** - Definicja fizycznego materiału z właściwościami takimi jak grubość, wymiary i kolor
+* **Paleta Materiałów** - Interfejs zarządzania materiałami w projekcie
+* **Element Outliner** - Interfejs zarządzania hierarchią elementów
+* **Edycja in-place** - Technika edycji elementu bez niszczenia relacji między instancjami
+* **RhinoAI** - Przyszły silnik automatyzacji CNC wykorzystujący dane z wtyczki
+* **MVVM** - Model-View-ViewModel, wzorzec architektoniczny stosowany w projekcie
+* **User Attributes** - Mechanizm Rhino do przechowywania metadanych na obiektach
+* **Block Definition** - Definicja bloku w Rhino, wykorzystywana jako podstawa elementów
+
+## 14. Autorzy i Historia Dokumentu
+
+### 14.1. Autorzy
+* [Imię i Nazwisko] - Główny architekt systemu
+* [Imię i Nazwisko] - Projektant UX/UI
+* [Imię i Nazwisko] - Specjalista produkcji CNC
+* [Imię i Nazwisko] - Menedżer projektu
+
+### 14.2. Historia Wersji
+* v1.0 (2023-06-22) - Początkowa wersja dokumentu
+* v1.1 (2023-07-15) - Aktualizacja specyfikacji UI Palety Materiałów
+* v1.2 (2023-08-03) - Dodanie szczegółowych wymagań dla Element Outlinera
+* v2.0 (2023-09-10) - Kompleksowa aktualizacja i finalizacja PRD
 
 ---
 
-## 2. Core Components & UI
-
-The plugin will consist of two main, independent panels that are dockable, floatable, and lockable within the Rhino 8 workspace. The UI will be built using **WPF** for a modern, responsive, and feature-rich experience.
-
-### 2.1. Material Palette
-A fast, project-specific panel for managing materials.
-
-*   **Global Material Catalog**:
-    *   A persistent, centralized database (`materials.json`) storing all company-approved materials.
-    *   Accessible via a dedicated "Material Catalog" window.
-    *   Users can add, edit, and delete materials from this global library.
-*   **Project Material Palette**:
-    *   A dockable panel showing materials currently used in the active project.
-    *   `[+] Add from Catalog` button opens a dialog to import materials from the Global Catalog into the current project.
-*   **Core Functions**:
-    *   **Assign Material**: Assigns the selected material from the palette to selected Rhino objects by writing data to their user attributes.
-    *   **Select by Material**: Selects all objects in the document that have the chosen material assigned.
-    *   **Hide by Material**: Hides all objects in the document with the chosen material.
-    *   **Get Sheet Layout**: Creates a rectangle in the viewport representing the material's maximum sheet size.
-    *   **Remove from Project**: Removes a material from the project palette (does not delete from the Global Catalog).
-
-### 2.2. Element Outliner
-An advanced block manager for organizing, documenting, and preparing parts for production.
-
-*   **Outliner Panel**:
-    *   A dockable, tree-view panel listing all "Elements" (specialized Rhino blocks) in the document.
-    *   Displays a clear hierarchy of nested elements.
-*   **Core Functions**:
-    *   **Create Element**: Groups selected Rhino objects into a new Element (block).
-    *   **Select / Hide / Isolate**: Standard object management for elements directly from the outliner.
-    *   **Batch Rename**: Allows for powerful, pattern-based renaming of multiple elements at once.
-    *   **Attach Documentation**: A key feature allowing users to link external files (PDFs, DXFs, STEP files, images) directly to an Element. These files are stored as metadata on the block definition.
-    *   **Preview Contents**: A tooltip or sub-panel showing the objects contained within an element.
-
----
-
-## 3. Data Schema & Persistence
-
-### 3.1. Material Data
-Each material in the `materials.json` catalog will be a JSON object with the following schema:
-*   `id` (string, UUID)
-*   `name` (string, e.g., "MDF Black")
-*   `type` (enum string: "Sheet", "Length")
-*   `thickness` (number, in mm)
-*   `sheet_width` (number, in mm, for "Sheet" type)
-*   `sheet_height` (number, in mm, for "Sheet" type)
-*   `weight` (number, optional, kg/m² or kg/m)
-
-**Example:**
-```json
-{
-  "id": "c4d2c6c0-6e4b-4b2d-8b0a-9e1e2e1c9e1e",
-  "name": "MDF 18mm",
-  "type": "Sheet",
-  "thickness": 18,
-  "sheet_width": 1220,
-  "sheet_height": 2440,
-  "weight": 13.5
-}
-```
-
-### 3.2. Element Data
-*   Object-to-material assignments will be stored in the Rhino object's **User Attributes**. The key will be `cnc.material.id` and the value will be the material's UUID.
-*   Element file attachments will be stored in the **Block Definition's User Attributes**. The key will be `cnc.element.docs` and the value will be a JSON string representing an array of file paths.
-
----
-
-## 4. Technical Stack & Implementation
-
-*   **Language**: C#
-*   **Framework**: .NET
-*   **UI**: WPF (Windows Presentation Foundation)
-*   **Target Environment**: Rhino 8 on Windows 11
-*   **Database**: A simple `materials.json` file stored in a user-accessible location (e.g., `AppData` or `My Documents`) to ensure persistence across projects and Rhino sessions.
-
----
-
-## 5. Non-Functional Requirements
-
-*   **Performance**: The UI must be highly responsive and not lag, even with hundreds of materials or elements.
-*   **Usability**: The workflow must be intuitive for a Rhino user. Locking the palette position is a key requirement.
-*   **Extensibility**: The system architecture should allow for the future integration of the `RhinoAI` engine, which will consume the data generated by this plugin. 
+Dokument zatwierdził: __________________________ Data: ______________
